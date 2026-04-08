@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>USD/VND Exchange Rate Projection 2026–2029</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #F5F6F8; color: #1A202C; -webkit-text-size-adjust: 100%; line-height: 1.6; }
+  .container { max-width: 760px; margin: 0 auto; padding: 14px; }
+
+  /* Header */
+  .header { background: linear-gradient(135deg, #0F2A44, #1B5E8A); border-radius: 14px; padding: 20px 18px; color: white; margin-bottom: 14px; }
+  .header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .header .sub { font-size: 11px; color: #93C5FD; margin-top: 3px; }
+  .header .spot { text-align: right; }
+  .header .spot-label { font-size: 9px; color: #93C5FD; text-transform: uppercase; letter-spacing: 0.5px; }
+  .header .spot-val { font-size: 28px; font-weight: 800; }
+  .header .spot-unit { font-size: 9px; color: #93C5FD; }
+  .hdr-row { display: flex; justify-content: space-between; align-items: center; }
+
+  /* Summary box */
+  .summary-box { background: white; border-left: 4px solid #1B5E8A; border-radius: 0 10px 10px 0; padding: 14px 16px; margin-bottom: 14px; font-size: 12.5px; line-height: 1.65; border: 1px solid #E2E8F0; border-left: 4px solid #1B5E8A; }
+  .summary-box strong { color: #0F2A44; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 3px; margin-bottom: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 1px; }
+  .tab { padding: 9px 13px; font-size: 11px; font-weight: 600; border: none; border-radius: 8px 8px 0 0; cursor: pointer; white-space: nowrap; transition: all 0.2s; background: #E2E8F0; color: #718096; }
+  .tab.active { background: white; color: #0F2A44; box-shadow: 0 -2px 0 #0F2A44 inset; }
+
+  /* Panel */
+  .panel { background: white; border-radius: 0 8px 12px 12px; padding: 18px 14px; border: 1px solid #E2E8F0; margin-bottom: 14px; min-height: 320px; }
+  .panel h3 { font-size: 13px; font-weight: 700; color: #0F2A44; margin-bottom: 10px; }
+  .panel .chart-note { font-size: 9.5px; color: #A0AEC0; text-align: center; margin-top: 6px; }
+  .chart-wrap { position: relative; width: 100%; margin-bottom: 16px; }
+  .chart-wrap canvas { width: 100% !important; }
+
+  /* Source links */
+  .src { font-size: 9px; color: #718096; margin-top: 3px; }
+  .src a { color: #1B5E8A; text-decoration: none; border-bottom: 1px dotted #1B5E8A; }
+  .src a:hover { color: #0F2A44; border-bottom-style: solid; }
+
+  /* Data cards */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .card { background: #F7FAFC; border-radius: 10px; padding: 12px 10px; text-align: center; border: 1px solid #E2E8F0; }
+  .card .label { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #718096; margin-bottom: 3px; }
+  .card .value { font-size: 19px; font-weight: 800; }
+  .card .sub { font-size: 8.5px; color: #A0AEC0; margin-top: 2px; }
+  .card .sub a { color: #1B5E8A; text-decoration: none; }
+
+  /* Scenario cards */
+  .scenario-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .sc-card { border-radius: 10px; padding: 10px 8px; text-align: center; }
+  .sc-card .sc-name { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sc-card .sc-prob { font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.7); padding: 1px 6px; border-radius: 4px; display: inline-block; margin-top: 2px; }
+  .sc-card .sc-rate { font-size: 16px; font-weight: 800; color: #1A202C; margin-top: 4px; }
+  .sc-card .sc-pace { font-size: 9px; color: #4A5568; }
+  .sc-card .sc-desc { font-size: 8.5px; color: #718096; margin-top: 3px; line-height: 1.4; }
+
+  /* Insight box */
+  .insight { background: #EDF2F7; border: 1px solid #CBD5E0; border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+  .insight p { font-size: 11.5px; color: #2D3748; line-height: 1.6; }
+  .insight strong { color: #0F2A44; }
+
+  /* Macro table */
+  .macro-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+  .macro-table th { background: #0F2A44; color: white; padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .macro-table td { padding: 7px 10px; border-bottom: 1px solid #E2E8F0; }
+  .macro-table tr:nth-child(even) { background: #F7FAFC; }
+  .macro-table a { color: #1B5E8A; text-decoration: none; font-size: 9px; }
+
+  /* Source bibliography */
+  .bib-item { margin-bottom: 10px; padding: 10px 12px; background: #F7FAFC; border-radius: 8px; border: 1px solid #E2E8F0; }
+  .bib-num { display: inline-block; background: #0F2A44; color: white; font-size: 10px; font-weight: 700; width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 4px; margin-right: 8px; }
+  .bib-title { font-size: 12px; font-weight: 700; color: #0F2A44; }
+  .bib-desc { font-size: 10.5px; color: #718096; margin-top: 3px; line-height: 1.5; }
+  .bib-link { font-size: 10px; margin-top: 4px; }
+  .bib-link a { color: #1B5E8A; text-decoration: none; word-break: break-all; }
+
+  /* Planning box */
+  .plan-box { background: #0F2A44; color: white; border-radius: 12px; padding: 16px; margin-top: 14px; }
+  .plan-box h4 { font-size: 12px; font-weight: 700; margin-bottom: 8px; color: #93C5FD; text-transform: uppercase; letter-spacing: 0.5px; }
+  .plan-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .plan-row:last-child { border: none; }
+  .plan-label { font-size: 11px; color: #CBD5E0; }
+  .plan-val { font-size: 16px; font-weight: 800; }
+
+  /* Footer */
+  .footer { font-size: 8.5px; color: #A0AEC0; text-align: center; padding: 10px 0 24px; line-height: 1.5; }
+
+  .hidden { display: none; }
+
+  @media (max-width: 500px) {
+    .scenario-grid { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="hdr-row">
+      <div>
+        <h1>USD/VND Exchange Rate Projection</h1>
+        <div class="sub">3-Year Outlook: 2026–2029 | Based on Public Data as of April 7, 2026</div>
+      </div>
+      <div class="spot">
+        <div class="spot-label">Current Bank Rate</div>
+        <div class="spot-val">26,361</div>
+        <div class="spot-unit">VND/USD | Apr 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-box">
+    <strong>Summary:</strong> Based on 10 years of historical data, current macroeconomic indicators, and institutional forecasts from the <a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank" style="color:#1B5E8A">IMF</a>, <a href="https://www.worldbank.org/en/news/press-release/2025/03/12/viet-nam-s-economy-forecast-to-grow-6-8-percent-in-2025-wb" target="_blank" style="color:#1B5E8A">World Bank</a>, and <a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank" style="color:#1B5E8A">US Federal Reserve</a>, the most likely scenario (55% probability) projects the USD/VND rate reaching <strong>27,600–28,400</strong> by 2029 — a gradual, managed depreciation of approximately <strong>1.5–2.5% per year</strong> from current levels.
+  </div>
+
+  <!-- KPIs -->
+  <div class="card-grid">
+    <div class="card"><div class="label">Base Case 2029</div><div class="value" style="color:#1B5E8A">27,600–28,400</div><div class="sub"><a href="https://data.adb.org/media/14141/download" target="_blank">[1]</a> <a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">[8]</a> <a href="https://www.vietcombank.com.vn/en/Personal/Cong-cu-Tien-ich/Ty-gia" target="_blank">[9]</a></div></div>
+    <div class="card"><div class="label">Base Case Probability</div><div class="value" style="color:#0F2A44">55%</div><div class="sub">Highest-likelihood scenario</div></div>
+    <div class="card"><div class="label">10-Year Avg Depreciation</div><div class="value" style="color:#B7791F">~1.2%/yr</div><div class="sub"><a href="https://data.adb.org/media/14141/download" target="_blank">ADB 2015–2024 [1]</a></div></div>
+    <div class="card"><div class="label">Planning Center Rate</div><div class="value" style="color:#C53030">27,800</div><div class="sub">Recommended anchor point</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0)">Historical</button>
+    <button class="tab" onclick="showTab(1)">Macro Drivers</button>
+    <button class="tab" onclick="showTab(2)">Scenarios</button>
+    <button class="tab" onclick="showTab(3)">Projection</button>
+    <button class="tab" onclick="showTab(4)">Sources</button>
+  </div>
+
+  <!-- Tab 0: Historical -->
+  <div class="panel" id="tab0">
+    <h3>USD/VND Annual Average Rate: 2015–2024</h3>
+    <div class="chart-wrap"><canvas id="chartHist" height="220"></canvas></div>
+    <div class="src">Source: <a href="https://data.adb.org/media/14141/download" target="_blank">ADB Key Indicators for Asia and the Pacific 2025</a> — Exchange rates sourced from IMF data (p. 9)</div>
+
+    <div class="insight" style="margin-top:14px">
+      <p><strong>Key observation:</strong> VND has depreciated gradually against USD as a long-term trend, but in a <strong>controlled, non-linear manner</strong> — not a sudden collapse. From 21,698 (2015) to 24,165 (2024), cumulative depreciation was ~11.4%, or approximately <strong>1.2% per year</strong> annualized. Some years saw acceleration (2023: +2.2%), while others were nearly flat (2021: -0.2%).</p>
+    </div>
+    <div class="src" style="margin-top:6px">Source: <a href="https://data.adb.org/media/14141/download" target="_blank">ADB [1]</a> — End-of-period rates also confirm ~1.18%/yr (21,890 → 24,335)</div>
+
+    <h3 style="margin-top:18px">Year-over-Year Change (%)</h3>
+    <div class="chart-wrap"><canvas id="chartYoY" height="180"></canvas></div>
+    <div class="src">Source: <a href="https://data.adb.org/media/14141/download" target="_blank">ADB Key Indicators 2025 [1]</a></div>
+  </div>
+
+  <!-- Tab 1: Macro Drivers -->
+  <div class="panel hidden" id="tab1">
+    <h3>Current Macroeconomic Indicators</h3>
+    <p style="font-size:11px; color:#718096; margin-bottom:10px">Key variables influencing USD/VND trajectory over 2026–2029</p>
+
+    <table class="macro-table">
+      <tr><th>Indicator</th><th>Value</th><th>Source</th></tr>
+      <tr><td><strong>Vietnam GDP growth 2025</strong></td><td>8.02%</td><td><a href="https://www.nso.gov.vn/en/data-and-statistics/2026/01/socio-economic-situation-in-the-fourth-quarter-and-2025/" target="_blank">[7] NSO</a></td></tr>
+      <tr><td><strong>Vietnam GDP growth 2024</strong></td><td>7.1%</td><td><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a></td></tr>
+      <tr><td><strong>WB forecast: GDP 2025/2026</strong></td><td>6.8% / 6.5%</td><td><a href="https://www.worldbank.org/en/news/press-release/2025/03/12/viet-nam-s-economy-forecast-to-grow-6-8-percent-in-2025-wb" target="_blank">[3] World Bank</a></td></tr>
+      <tr><td><strong>Current account surplus 2024</strong></td><td>6.6% of GDP (record)</td><td><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a></td></tr>
+      <tr><td><strong>FX reserves</strong></td><td>~$83.1 billion</td><td><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a></td></tr>
+      <tr><td><strong>FDI disbursement</strong></td><td>~$25 billion/yr</td><td><a href="https://www.worldbank.org/en/news/press-release/2025/03/12/viet-nam-s-economy-forecast-to-grow-6-8-percent-in-2025-wb" target="_blank">[3] World Bank</a></td></tr>
+      <tr><td><strong>Vietnam CPI Q1/2026 (avg)</strong></td><td>3.51%</td><td><a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">[6] NSO</a></td></tr>
+      <tr><td><strong>Vietnam CPI March 2026 (YoY)</strong></td><td>4.65%</td><td><a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">[6] NSO</a></td></tr>
+      <tr><td><strong>IMF CPI forecast 2025/2026</strong></td><td>3.4% / 3.2%</td><td><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a></td></tr>
+      <tr><td><strong>Fed Funds Rate (SEP median)</strong></td><td>3.4% (2026), 3.1% (2027–28)</td><td><a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">[5] Fed</a></td></tr>
+      <tr><td><strong>US PCE Inflation (SEP)</strong></td><td>2.7% / 2.2% / 2.0%</td><td><a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">[5] Fed</a></td></tr>
+      <tr><td><strong>Interbank mid-rate (Apr 2026)</strong></td><td>25,106 VND/USD</td><td><a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">[8] NCB</a></td></tr>
+      <tr><td><strong>Bank selling rate (Apr 2026)</strong></td><td>26,361 VND/USD</td><td><a href="https://www.vietcombank.com.vn/en/Personal/Cong-cu-Tien-ich/Ty-gia" target="_blank">[9] VCB</a> <a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">[8] NCB</a></td></tr>
+    </table>
+
+    <div class="insight" style="margin-top:14px">
+      <p><strong>Interpretation:</strong> Vietnam's economy remains strong (GDP 8.02% in 2025, record current account surplus). However, <strong>domestic inflation pressure persists</strong> — CPI in March 2026 hit 4.65% YoY (<a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">NSO [6]</a>), and the Vietnam–US inflation differential does not support a VND appreciation story. Meanwhile, the Fed is signaling only gradual rate cuts (<a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">Fed SEP [5]</a>), keeping USD structurally supported. The IMF notes that <em>"greater exchange rate flexibility is critical"</em> for Vietnam (<a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2]</a>), implying continued managed depreciation rather than a fixed peg.</p>
+    </div>
+
+    <h3 style="margin-top:18px">Vietnam CPI vs. Fed Funds Rate Trajectory</h3>
+    <div class="chart-wrap"><canvas id="chartMacro" height="200"></canvas></div>
+    <div class="src">Sources: <a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">IMF [2]</a>, <a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">Fed SEP [5]</a>, <a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">NSO [6]</a></div>
+  </div>
+
+  <!-- Tab 2: Scenarios -->
+  <div class="panel hidden" id="tab2">
+    <h3>Three Scenarios for USD/VND by 2029</h3>
+    <div class="chart-wrap"><canvas id="chartScenario" height="240"></canvas></div>
+    <div class="src">Projection from current bank rate 26,361. Sources: <a href="https://data.adb.org/media/14141/download" target="_blank">ADB [1]</a>, <a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">IMF [2]</a>, <a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">Fed [5]</a>, <a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">NCB [8]</a>, <a href="https://www.vietcombank.com.vn/en/Personal/Cong-cu-Tien-ich/Ty-gia" target="_blank">VCB [9]</a></div>
+
+    <div class="scenario-grid">
+      <div class="sc-card" style="background:#EBF5FB; border:1px solid #1B5E8A30">
+        <div class="sc-name" style="color:#1B5E8A">Scenario 1</div>
+        <div class="sc-prob" style="color:#1B5E8A">20%</div>
+        <div class="sc-rate">26,900–27,400</div>
+        <div class="sc-pace">0.7–1.3%/yr</div>
+        <div class="sc-desc">USD weakens: Fed cuts faster, trade tensions ease, Vietnam CPI falls</div>
+      </div>
+      <div class="sc-card" style="background:#FFF8E1; border:1px solid #B7791F30">
+        <div class="sc-name" style="color:#B7791F">Scenario 2 (Base)</div>
+        <div class="sc-prob" style="color:#B7791F">55%</div>
+        <div class="sc-rate">27,600–28,400</div>
+        <div class="sc-pace">1.5–2.5%/yr</div>
+        <div class="sc-desc">Managed depreciation: Fed cuts slowly, Vietnam grows but VND adjusts gradually</div>
+      </div>
+      <div class="sc-card" style="background:#FDE8E8; border:1px solid #C5303030">
+        <div class="sc-name" style="color:#C53030">Scenario 3</div>
+        <div class="sc-prob" style="color:#C53030">25%</div>
+        <div class="sc-rate">28,800–30,100</div>
+        <div class="sc-pace">3.0–4.5%/yr</div>
+        <div class="sc-desc">VND weakens: Tariff escalation, energy/transport costs rise, USD stays strong</div>
+      </div>
+    </div>
+
+    <div class="insight" style="margin-top:14px">
+      <p><strong>Why Scenario 2 (55%):</strong> Most consistent with both 10-year historical trend (~1.2%/yr, <a href="https://data.adb.org/media/14141/download" target="_blank">[1]</a>) and current fundamentals. Vietnam maintains strong growth and external buffers, while the Fed has not signaled deep rate cuts (<a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">[5]</a>). This combination typically produces moderate, controlled depreciation.</p>
+      <p style="margin-top:8px"><strong>Why Scenario 1 is only 20%:</strong> Requires multiple favorable conditions simultaneously — sharper Fed easing than current SEP projections, reduced global trade tensions, and lower Vietnam CPI. Current data (CPI 4.65% in Mar 2026, <a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">[6]</a>) does not support this.</p>
+      <p style="margin-top:8px"><strong>Why Scenario 3 is 25%:</strong> Risks are material — <a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">IMF [2]</a> highlights "elevated global uncertainty on trade policies" and "new U.S. tariffs" as binding constraints. <a href="https://www.worldbank.org/en/country/vietnam/publication/taking-stock-viet-nam-economic-update-march-2025" target="_blank">World Bank [4]</a> identifies trade disruptions as the largest downside risk. However, Vietnam's buffers ($83.1B reserves, 6.6% CA surplus) prevent this from being the base case.</p>
+    </div>
+  </div>
+
+  <!-- Tab 3: Projection -->
+  <div class="panel hidden" id="tab3">
+    <h3>Projection Methodology</h3>
+    <p style="font-size:11px; color:#718096; margin-bottom:10px">The projection uses four analytical layers, each grounded in publicly verifiable data:</p>
+
+    <table class="macro-table">
+      <tr><th>Layer</th><th>Input</th><th>Source</th></tr>
+      <tr><td><strong>1. Historical trend</strong></td><td>~1.2%/yr average depreciation (2015–2024)</td><td><a href="https://data.adb.org/media/14141/download" target="_blank">[1] ADB</a></td></tr>
+      <tr><td><strong>2. Inflation & rate differential</strong></td><td>Vietnam CPI 3.5–4.7% vs US PCE 2.0–2.7%; Fed funds 3.1–3.4%</td><td><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a>, <a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">[5] Fed</a>, <a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">[6] NSO</a></td></tr>
+      <tr><td><strong>3. External buffers</strong></td><td>$83.1B reserves, 6.6% GDP CA surplus, $25B FDI, 7–8% GDP growth</td><td><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a>, <a href="https://www.worldbank.org/en/news/press-release/2025/03/12/viet-nam-s-economy-forecast-to-grow-6-8-percent-in-2025-wb" target="_blank">[3] WB</a>, <a href="https://www.nso.gov.vn/en/data-and-statistics/2026/01/socio-economic-situation-in-the-fourth-quarter-and-2025/" target="_blank">[7] NSO</a></td></tr>
+      <tr><td><strong>4. Risk premium</strong></td><td>Trade policy uncertainty, tariffs, energy & transport costs</td><td><a href="https://www.worldbank.org/en/country/vietnam/publication/taking-stock-viet-nam-economic-update-march-2025" target="_blank">[4] WB</a>, <a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">[2] IMF</a></td></tr>
+    </table>
+
+    <h3 style="margin-top:18px">Implied Depreciation from Current Rate (26,361)</h3>
+    <div class="chart-wrap"><canvas id="chartDepr" height="200"></canvas></div>
+    <div class="src">Current rate: <a href="https://www.vietcombank.com.vn/en/Personal/Cong-cu-Tien-ich/Ty-gia" target="_blank">Vietcombank [9]</a> & <a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">NCB [8]</a>, Apr 6–7, 2026</div>
+
+    <!-- Planning box -->
+    <div class="plan-box">
+      <h4>Planning Reference Points</h4>
+      <div class="plan-row">
+        <span class="plan-label">Central planning rate (2029)</span>
+        <span class="plan-val">27,800</span>
+      </div>
+      <div class="plan-row">
+        <span class="plan-label">Defensive planning rate (2029)</span>
+        <span class="plan-val" style="color:#FBD38D">28,500</span>
+      </div>
+      <div class="plan-row">
+        <span class="plan-label">Stress test only (2029)</span>
+        <span class="plan-val" style="color:#FC8181">28,800–30,100</span>
+      </div>
+    </div>
+    <div class="src" style="margin-top:6px">Planning rates derived from base-case midpoint and Scenario 3 lower bound. Sources: <a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">[8]</a> <a href="https://www.vietcombank.com.vn/en/Personal/Cong-cu-Tien-ich/Ty-gia" target="_blank">[9]</a></div>
+
+    <div class="insight" style="margin-top:14px">
+      <p><strong>Note on methodology:</strong> A responsible exchange rate forecast must use ranges and probabilities — not a single number. USD/VND is simultaneously influenced by Vietnam's growth, domestic inflation, US interest rates and inflation, global trade flows, FDI, the current account balance, energy prices, and State Bank of Vietnam policy. The probability allocations (20%–55%–25%) are subjective assessments calibrated against the data currently available, not absolute mathematical probabilities. They should be updated as new data emerges.</p>
+    </div>
+  </div>
+
+  <!-- Tab 4: Sources -->
+  <div class="panel hidden" id="tab4" style="min-height:auto">
+    <h3>Data Sources & Bibliography</h3>
+    <p style="font-size:11px; color:#718096; margin-bottom:12px">All data in this report is sourced from publicly available, institutional publications. Click any link to verify.</p>
+
+    <div class="bib-item">
+      <span class="bib-num">1</span><span class="bib-title">ADB — Key Indicators for Asia and the Pacific 2025 (Vietnam)</span>
+      <div class="bib-desc">10-year USD/VND annual average and end-of-period exchange rates; international reserves. Foundation for historical trend analysis (2015–2024). Reference: page 9.</div>
+      <div class="bib-link"><a href="https://data.adb.org/media/14141/download" target="_blank">https://data.adb.org/media/14141/download</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">2</span><span class="bib-title">IMF — 2025 Article IV Consultation with Vietnam</span>
+      <div class="bib-desc">GDP growth 2024 (7.1%), record current account surplus (6.6% GDP), FX reserves (~$83.1B), CPI forecasts (3.4%/3.2% for 2025/2026), and policy recommendation on exchange rate flexibility.</div>
+      <div class="bib-link"><a href="https://www.imf.org/en/news/articles/2025/09/15/pr-25296-vietnam-imf-executive-board-concludes-2025-article-iv-consultation" target="_blank">https://www.imf.org/en/news/articles/2025/09/15/pr-25296...</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">3</span><span class="bib-title">World Bank — Vietnam GDP Forecast (Press Release, March 2025)</span>
+      <div class="bib-desc">GDP growth forecasts for 2025 (6.8%) and 2026 (6.5%); FDI disbursement projection (~$25B annually).</div>
+      <div class="bib-link"><a href="https://www.worldbank.org/en/news/press-release/2025/03/12/viet-nam-s-economy-forecast-to-grow-6-8-percent-in-2025-wb" target="_blank">https://www.worldbank.org/.../viet-nam-s-economy-forecast...</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">4</span><span class="bib-title">World Bank — Taking Stock: Vietnam Economic Update (March 2025)</span>
+      <div class="bib-desc">Identified trade disruptions and slower global growth as the largest downside risks to Vietnam's economic outlook.</div>
+      <div class="bib-link"><a href="https://www.worldbank.org/en/country/vietnam/publication/taking-stock-viet-nam-economic-update-march-2025" target="_blank">https://www.worldbank.org/.../taking-stock-viet-nam...</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">5</span><span class="bib-title">Federal Reserve — Summary of Economic Projections (March 18, 2026)</span>
+      <div class="bib-desc">Fed Funds Rate median projections: 3.4% (2026), 3.1% (2027), 3.1% (2028). US PCE inflation: 2.7%/2.2%/2.0%. Signals gradual — not aggressive — rate cuts.</div>
+      <div class="bib-link"><a href="https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm" target="_blank">https://www.federalreserve.gov/.../fomcprojtabl20260318.htm</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">6</span><span class="bib-title">NSO — Consumer Price Index, March & Q1 2026</span>
+      <div class="bib-desc">CPI Q1/2026 average: 3.51%. CPI March 2026 YoY: 4.65%. Confirms persistent domestic inflation pressure above the IMF's earlier projections.</div>
+      <div class="bib-link"><a href="https://www.nso.gov.vn/en/data-and-statistics/2026/04/consumer-price-index-gold-us-dollar-price-index-in-march-and-the-first-quarter-in-2026/" target="_blank">https://www.nso.gov.vn/.../consumer-price-index...</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">7</span><span class="bib-title">NSO — Socio-economic Situation Q4 & Full Year 2025</span>
+      <div class="bib-desc">Official GDP growth for 2025: 8.02% — significantly above earlier World Bank and IMF projections. Demonstrates Vietnam's economic resilience.</div>
+      <div class="bib-link"><a href="https://www.nso.gov.vn/en/data-and-statistics/2026/01/socio-economic-situation-in-the-fourth-quarter-and-2025/" target="_blank">https://www.nso.gov.vn/.../socio-economic-situation...</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">8</span><span class="bib-title">NCB — Exchange Rates (Interbank & Commercial)</span>
+      <div class="bib-desc">Interbank mid-rate: 25,106 VND/USD. Bank selling rate: 26,361 VND/USD. As of April 6–7, 2026.</div>
+      <div class="bib-link"><a href="https://www.ncb-bank.vn/vi/ty-gia-tien-te" target="_blank">https://www.ncb-bank.vn/vi/ty-gia-tien-te</a></div>
+    </div>
+
+    <div class="bib-item">
+      <span class="bib-num">9</span><span class="bib-title">Vietcombank — Exchange Rate Utility</span>
+      <div class="bib-desc">Bank selling rate: 26,361 VND/USD. Updated April 6–7, 2026. Cross-validates NCB data.</div>
+      <div class="bib-link"><a href="https://www.vietcombank.com.vn/en/Personal/Cong-cu-Tien-ich/Ty-gia" target="_blank">https://www.vietcombank.com.vn/.../Ty-gia</a></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Data as of April 7, 2026 | All sources publicly verifiable via hyperlinks above<br>
+    Projections are scenario-based estimates, not guarantees. Probabilities are subjective assessments calibrated to current data.<br>
+    This document is for planning and reference purposes only — it is not investment advice or a commitment to any future exchange rate.
+  </div>
+</div>
+
+<script>
+// ── Tab switching ──
+function showTab(n) {
+  for (let i = 0; i < 5; i++) {
+    document.getElementById('tab' + i).classList.toggle('hidden', i !== n);
+    document.querySelectorAll('.tab')[i].classList.toggle('active', i === n);
+  }
+  if (n === 0 && !window._c0) initTab0();
+  if (n === 1 && !window._c1) initTab1();
+  if (n === 2 && !window._c2) initTab2();
+  if (n === 3 && !window._c3) initTab3();
+}
+
+const NAVY = '#0F2A44', BLUE = '#1B5E8A', AMBER = '#B7791F', RED = '#C53030', GREEN = '#2D6A4F', GRAY = '#A0AEC0';
+
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 12;
+
+// ── Tab 0: Historical ──
+function initTab0() {
+  window._c0 = true;
+  const years = ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'];
+  const rates = [21698,21935,22370,22602,23050,23208,23160,23271,23787,24165];
+
+  new Chart(document.getElementById('chartHist'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'USD/VND Annual Average',
+        data: rates,
+        borderColor: NAVY,
+        backgroundColor: NAVY + '15',
+        fill: true,
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointBackgroundColor: NAVY,
+        tension: 0.15
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { min: 21000, max: 25000, ticks: { callback: v => v.toLocaleString() }, grid: { color: '#E2E8F020' } },
+        x: { grid: { display: false } }
+      },
+      plugins: {
+        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toLocaleString()} VND/USD` } }
+      }
+    }
+  });
+
+  // YoY chart
+  const yoy = [null, 1.1, 2.0, 1.0, 2.0, 0.7, -0.2, 0.5, 2.2, 1.6];
+  const colors = yoy.map(v => v === null ? GRAY : v > 1.5 ? AMBER : v > 0 ? BLUE : GREEN);
+
+  new Chart(document.getElementById('chartYoY'), {
+    type: 'bar',
+    data: {
+      labels: years,
+      datasets: [{ label: 'YoY Change %', data: yoy, backgroundColor: colors, borderRadius: 3 }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { ticks: { callback: v => (v > 0 ? '+' : '') + v + '%' }, grid: { color: '#E2E8F040' } },
+        x: { grid: { display: false } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.y !== null ? `${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y}%` : 'N/A' } }
+      }
+    }
+  });
+}
+
+// ── Tab 1: Macro ──
+function initTab1() {
+  window._c1 = true;
+
+  new Chart(document.getElementById('chartMacro'), {
+    type: 'line',
+    data: {
+      labels: ['2024', '2025', '2026', '2027', '2028'],
+      datasets: [
+        { label: 'Vietnam CPI %', data: [3.6, 3.4, 3.51, null, null], borderColor: RED, borderWidth: 2, pointRadius: 5, tension: 0.2, spanGaps: false },
+        { label: 'Vietnam CPI (IMF fcst)', data: [null, 3.4, 3.2, null, null], borderColor: RED, borderWidth: 1.5, borderDash: [6,3], pointRadius: 4, tension: 0.2, spanGaps: false },
+        { label: 'Fed Funds Rate %', data: [5.3, 4.3, 3.4, 3.1, 3.1], borderColor: BLUE, borderWidth: 2, pointRadius: 5, tension: 0.2 },
+        { label: 'US PCE Inflation %', data: [2.6, 2.5, 2.7, 2.2, 2.0], borderColor: NAVY, borderWidth: 1.5, borderDash: [6,3], pointRadius: 4, tension: 0.2 },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: { min: 0, max: 6, ticks: { callback: v => v + '%' }, grid: { color: '#E2E8F040' } },
+        x: { grid: { display: false } }
+      },
+      plugins: { tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%` } } }
+    }
+  });
+}
+
+// ── Tab 2: Scenarios ──
+function initTab2() {
+  window._c2 = true;
+
+  new Chart(document.getElementById('chartScenario'), {
+    type: 'line',
+    data: {
+      labels: ['Apr 2026', '2027', '2028', '2029'],
+      datasets: [
+        { label: 'Scenario 3: VND Weak (25%)', data: [26361, 27600, 28900, 30100], borderColor: RED, backgroundColor: RED + '12', fill: true, borderWidth: 1.5, tension: 0.2, pointRadius: 5 },
+        { label: 'Scenario 3: Low-end (25%)', data: [26361, 27200, 28000, 28800], borderColor: RED, backgroundColor: RED + '08', fill: '-1', borderWidth: 1, borderDash: [4,3], tension: 0.2, pointRadius: 3 },
+        { label: 'Scenario 2: Base High (55%)', data: [26361, 27100, 27750, 28400], borderColor: AMBER, backgroundColor: AMBER + '18', fill: true, borderWidth: 2.5, tension: 0.2, pointRadius: 6 },
+        { label: 'Scenario 2: Base Low (55%)', data: [26361, 26800, 27200, 27600], borderColor: AMBER, backgroundColor: AMBER + '10', fill: '-1', borderWidth: 1.5, borderDash: [6,3], tension: 0.2, pointRadius: 4 },
+        { label: 'Scenario 1: USD Weak (20%)', data: [26361, 26600, 27000, 27400], borderColor: BLUE, backgroundColor: BLUE + '10', fill: true, borderWidth: 1.5, tension: 0.2, pointRadius: 4 },
+        { label: 'Scenario 1: Low-end (20%)', data: [26361, 26500, 26700, 26900], borderColor: BLUE, backgroundColor: BLUE + '08', fill: '-1', borderWidth: 1, borderDash: [4,3], tension: 0.2, pointRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: { min: 26000, max: 31000, ticks: { callback: v => v.toLocaleString() }, grid: { color: '#E2E8F040' } },
+        x: { grid: { display: false } }
+      },
+      plugins: { tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}` } } }
+    }
+  });
+}
+
+// ── Tab 3: Projection ──
+function initTab3() {
+  window._c3 = true;
+
+  const scenarios = ['Scenario 1\n(Low)', 'Scenario 1\n(High)', 'Scenario 2\n(Low)', 'Scenario 2\n(High)', 'Scenario 3\n(Low)', 'Scenario 3\n(High)'];
+  const targets = [26900, 27400, 27600, 28400, 28800, 30100];
+  const depr = targets.map(t => ((t - 26361) / 26361 * 100).toFixed(1));
+  const annual = targets.map(t => ((t / 26361) ** (1/3) - 1) * 100);
+  const colors = [BLUE, BLUE, AMBER, AMBER, RED, RED];
+
+  new Chart(document.getElementById('chartDepr'), {
+    type: 'bar',
+    data: {
+      labels: scenarios,
+      datasets: [
+        { label: 'Cumulative Depreciation %', data: depr, backgroundColor: colors.map(c => c + '70'), borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { ticks: { callback: v => '+' + v + '%' }, grid: { color: '#E2E8F040' }, title: { display: true, text: 'Cumulative 3-Year Change', font: { size: 10 }, color: GRAY } },
+        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `+${ctx.parsed.y}% (${targets[ctx.dataIndex].toLocaleString()} VND/USD)` } }
+      }
+    }
+  });
+}
+
+// Init first tab
+initTab0();
+</script>
+</body>
+</html>
