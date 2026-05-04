@@ -259,6 +259,19 @@
   .figure-stat-blue .v { color: var(--blue-8); }
 
   /* Tables */
+  .table-scroll {
+    margin-top: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Subtle right-edge fade so users see there's more to scroll */
+    background:
+      linear-gradient(to right, white 30%, rgba(255,255,255,0)) left center / 24px 100% no-repeat,
+      linear-gradient(to right, rgba(255,255,255,0), white 70%) right center / 24px 100% no-repeat,
+      radial-gradient(farthest-side at 0 50%, rgba(15,23,42,0.10), rgba(15,23,42,0)) left center / 12px 100% no-repeat,
+      radial-gradient(farthest-side at 100% 50%, rgba(15,23,42,0.10), rgba(15,23,42,0)) right center / 12px 100% no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+  .table-scroll table { margin-top: 0; }
   table {
     width: 100%; border-collapse: collapse;
     font-size: 14px; margin-top: 16px;
@@ -896,22 +909,24 @@
         </p>
 
         <h3 style="margin-top: 24px;" data-i18n="school.cap.h">Capacity at maturity</h3>
-        <table class="compact">
-          <thead>
-            <tr>
-              <th data-i18n="school.cap.thlevel">Level</th>
-              <th class="num" data-i18n="school.cap.thclasses">Classes</th>
-              <th class="num" data-i18n="school.cap.thstudents">Students</th>
-              <th class="num" data-i18n="school.cap.thteachers">Teachers</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td data-i18n="school.cap.primary">Primary (Lớp 1–5)</td><td class="num">33</td><td class="num">990</td><td class="num">52</td></tr>
-            <tr><td data-i18n="school.cap.thcs">Lower-secondary / THCS (6–9)</td><td class="num">18</td><td class="num">540</td><td class="num">36</td></tr>
-            <tr><td data-i18n="school.cap.thpt">High school / THPT (10–12)</td><td class="num">17</td><td class="num">470</td><td class="num">38</td></tr>
-            <tr class="total"><td data-i18n="school.cap.total">Total at capacity</td><td class="num">68</td><td class="num">2,000</td><td class="num">126</td></tr>
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="compact">
+            <thead>
+              <tr>
+                <th data-i18n="school.cap.thlevel">Level</th>
+                <th class="num" data-i18n="school.cap.thclasses">Classes</th>
+                <th class="num" data-i18n="school.cap.thstudents">Students</th>
+                <th class="num" data-i18n="school.cap.thteachers">Teachers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-i18n="school.cap.primary">Primary (Lớp 1–5)</td><td class="num">33</td><td class="num">990</td><td class="num">52</td></tr>
+              <tr><td data-i18n="school.cap.thcs">Lower-secondary / THCS (6–9)</td><td class="num">18</td><td class="num">540</td><td class="num">36</td></tr>
+              <tr><td data-i18n="school.cap.thpt">High school / THPT (10–12)</td><td class="num">17</td><td class="num">470</td><td class="num">38</td></tr>
+              <tr class="total"><td data-i18n="school.cap.total">Total at capacity</td><td class="num">68</td><td class="num">2,000</td><td class="num">126</td></tr>
+            </tbody>
+          </table>
+        </div>
         <p class="small" style="margin-top: 10px;" data-i18n="school.cap.note">
           ~400 total staff at capacity including admin, support, and operations.<sup class="ref">5</sup>
         </p>
@@ -987,34 +1002,38 @@
       </div>
 
       <div>
-        <table class="compact">
-          <thead>
-            <tr>
-              <th data-i18n="ramp.thlevel">Level</th>
-              <th class="num">Y1</th><th class="num">Y2</th><th class="num">Y3</th>
-              <th class="num">Y4</th><th class="num">Y5</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td data-i18n="ramp.primClasses">Primary classes</td><td class="num">5</td><td class="num">9</td><td class="num">13</td><td class="num">15</td><td class="num">19</td></tr>
-            <tr><td data-i18n="ramp.primStudents">Primary students</td><td class="num">150</td><td class="num">270</td><td class="num">390</td><td class="num">450</td><td class="num">570</td></tr>
-            <tr><td data-i18n="ramp.thcsClasses">THCS classes</td><td class="num">2</td><td class="num">5</td><td class="num">8</td><td class="num">9</td><td class="num">11</td></tr>
-            <tr><td data-i18n="ramp.thcsStudents">THCS students</td><td class="num">60</td><td class="num">150</td><td class="num">240</td><td class="num">270</td><td class="num">330</td></tr>
-            <tr><td data-i18n="ramp.thptClasses">THPT classes</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">4</td></tr>
-            <tr><td data-i18n="ramp.thptStudents">THPT students</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">90</td><td class="num">120</td></tr>
-            <tr class="total"><td data-i18n="ramp.totalStudents">Total students</td><td class="num">210</td><td class="num">420</td><td class="num">630</td><td class="num">810</td><td class="num">1,020</td></tr>
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="compact">
+            <thead>
+              <tr>
+                <th data-i18n="ramp.thlevel">Level</th>
+                <th class="num">Y1</th><th class="num">Y2</th><th class="num">Y3</th>
+                <th class="num">Y4</th><th class="num">Y5</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-i18n="ramp.primClasses">Primary classes</td><td class="num">5</td><td class="num">9</td><td class="num">13</td><td class="num">15</td><td class="num">19</td></tr>
+              <tr><td data-i18n="ramp.primStudents">Primary students</td><td class="num">150</td><td class="num">270</td><td class="num">390</td><td class="num">450</td><td class="num">570</td></tr>
+              <tr><td data-i18n="ramp.thcsClasses">THCS classes</td><td class="num">2</td><td class="num">5</td><td class="num">8</td><td class="num">9</td><td class="num">11</td></tr>
+              <tr><td data-i18n="ramp.thcsStudents">THCS students</td><td class="num">60</td><td class="num">150</td><td class="num">240</td><td class="num">270</td><td class="num">330</td></tr>
+              <tr><td data-i18n="ramp.thptClasses">THPT classes</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">4</td></tr>
+              <tr><td data-i18n="ramp.thptStudents">THPT students</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">90</td><td class="num">120</td></tr>
+              <tr class="total"><td data-i18n="ramp.totalStudents">Total students</td><td class="num">210</td><td class="num">420</td><td class="num">630</td><td class="num">810</td><td class="num">1,020</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h3 style="margin-top: 28px;" data-i18n="ramp.tuition.h">Tuition assumptions</h3>
-        <table class="compact">
-          <thead><tr><th data-i18n="ramp.thlevel">Level</th><th class="num" data-i18n="ramp.tuition.thmo">VND/student/month</th><th class="num" data-i18n="ramp.tuition.thyr">VND/student/year (10 mo)</th></tr></thead>
-          <tbody>
-            <tr><td data-i18n="school.cap.primary">Primary</td><td class="num">15 M</td><td class="num">150 M</td></tr>
-            <tr><td data-i18n="school.cap.thcs">Lower-secondary (THCS)</td><td class="num">20 M</td><td class="num">200 M</td></tr>
-            <tr><td data-i18n="school.cap.thpt">High school (THPT)</td><td class="num">20 M</td><td class="num">200 M</td></tr>
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="compact">
+            <thead><tr><th data-i18n="ramp.thlevel">Level</th><th class="num" data-i18n="ramp.tuition.thmo">VND/student/month</th><th class="num" data-i18n="ramp.tuition.thyr">VND/student/year (10 mo)</th></tr></thead>
+            <tbody>
+              <tr><td data-i18n="school.cap.primary">Primary</td><td class="num">15 M</td><td class="num">150 M</td></tr>
+              <tr><td data-i18n="school.cap.thcs">Lower-secondary (THCS)</td><td class="num">20 M</td><td class="num">200 M</td></tr>
+              <tr><td data-i18n="school.cap.thpt">High school (THPT)</td><td class="num">20 M</td><td class="num">200 M</td></tr>
+            </tbody>
+          </table>
+        </div>
         <p class="small" style="margin-top: 8px;" data-i18n="ramp.tuition.note">
           10 months of tuition collected per academic year. The source model holds tuition flat
           across 35 years (effective 0% inflation — see §8). The §5 live model defaults to the
@@ -1788,13 +1807,21 @@ function cfData(result) {
     ],
   };
 }
+function isMobile() { return window.innerWidth <= 540; }
+function isTablet() { return window.innerWidth <= 768; }
+
 function cfOptions(result) {
+  const m = isMobile();
+  const tickFontSize = m ? 9 : 11;
   return {
     responsive: true, maintainAspectRatio: false,
     interaction: { intersect: false, mode: 'index' },
     plugins: {
       legend: { display: false },
       tooltip: {
+        bodyFont: { size: m ? 11 : 12 },
+        titleFont: { size: m ? 11 : 13 },
+        padding: m ? 8 : 10,
         callbacks: {
           title: (items) => 'Year ' + items[0].dataIndex,
           label: (ctx) => 'Cumulative: ' + fmtBs(ctx.parsed.y, 1) + ' VND',
@@ -1809,11 +1836,19 @@ function cfOptions(result) {
       },
     },
     scales: {
-      x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
+      x: {
+        grid: { display: false },
+        ticks: {
+          maxRotation: 0,
+          autoSkipPadding: m ? 24 : 12,
+          maxTicksLimit: m ? 7 : (isTablet() ? 12 : undefined),
+          font: { size: tickFontSize },
+        },
+      },
       y: {
         grid: { color: colors.line },
-        ticks: { callback: (v) => fmtB(v) + ' B' },
-        title: { display: true, text: 'Cumulative cash flow (B VND)', color: colors.ink3, font: { size: 11 } },
+        ticks: { callback: (v) => fmtB(v) + ' B', font: { size: tickFontSize } },
+        title: { display: !m, text: 'Cumulative cash flow (B VND)', color: colors.ink3, font: { size: 11 } },
       },
     },
   };
@@ -1867,6 +1902,28 @@ function sensitivity() {
 }
 const sensRows = sensitivity();
 const sensCtx = document.getElementById('sensChart').getContext('2d');
+function sensOptions() {
+  const m = isMobile();
+  return {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10, padding: m ? 10 : 14, font: { size: m ? 10 : 12 } } },
+      tooltip: {
+        bodyFont: { size: m ? 11 : 12 },
+        callbacks: { label: (ctx) => (window.t ? t('chart.deltaNpv') : 'Δ NPV: ') + fmtBs(ctx.parsed.x, 0) + ' VND' },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: colors.line },
+        ticks: { callback: (v) => fmtB(v) + ' B', font: { size: m ? 9 : 11 }, maxTicksLimit: m ? 4 : undefined },
+        title: { display: !m, text: 'Δ 35-yr NPV (B VND) from base case', color: colors.ink3, font: { size: 11 } },
+      },
+      y: { grid: { display: false }, ticks: { font: { size: m ? 10 : 12 } } },
+    },
+  };
+}
 new Chart(sensCtx, {
   type: 'bar',
   data: {
@@ -1876,18 +1933,7 @@ new Chart(sensCtx, {
       { label: '+20%', data: sensRows.map(r => r.up), backgroundColor: colors.blueDeep, borderRadius: 2 },
     ],
   },
-  options: {
-    indexAxis: 'y',
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } },
-      tooltip: { callbacks: { label: (ctx) => 'Δ NPV: ' + fmtBs(ctx.parsed.x, 0) + ' VND' } },
-    },
-    scales: {
-      x: { grid: { color: colors.line }, ticks: { callback: (v) => fmtB(v) + ' B' }, title: { display: true, text: 'Δ 35-yr NPV (B VND) from base case', color: colors.ink3, font: { size: 11 } } },
-      y: { grid: { display: false } },
-    },
-  },
+  options: sensOptions(),
 });
 
 // =========================================================================
@@ -2471,6 +2517,15 @@ const I18N = {
   'tornado.inflation':  { en: 'Annual inflation',      vi: 'Lạm phát hằng năm' },
   'tornado.discount':   { en: 'Discount rate',         vi: 'Tỷ lệ chiết khấu' },
   'tornado.capexY0':    { en: 'Year-0 CapEx',          vi: 'Vốn đầu tư năm 0' },
+  // Short labels for tornado on narrow screens
+  'tornadoShort.opRatio':    { en: 'Op cost %',  vi: 'CP vận hành' },
+  'tornadoShort.rampFactor': { en: 'Y5 ramp',    vi: 'TS Năm 5' },
+  'tornadoShort.capexY3':    { en: 'Y3 CapEx',   vi: 'VĐT N3' },
+  'tornadoShort.tuP':        { en: 'Tuition P',  vi: 'HP Tiểu học' },
+  'tornadoShort.tuS':        { en: 'Tuition S',  vi: 'HP THCS' },
+  'tornadoShort.inflation':  { en: 'Inflation',  vi: 'Lạm phát' },
+  'tornadoShort.discount':   { en: 'Discount',   vi: 'Chiết khấu' },
+  'tornadoShort.capexY0':    { en: 'Y0 CapEx',   vi: 'VĐT N0' },
 };
 
 let CURRENT_LANG = 'en';
@@ -2529,16 +2584,31 @@ function rebuildCharts() {
   cfChart.options = cfOptionsLocalized(BASE_RESULT);
   cfChart.update();
 
-  // Sensitivity chart — relabel rows + datasets + axes
+  // Sensitivity chart — relabel rows + datasets + axes (with mobile-aware options)
   if (window.sensChart) {
-    window.sensChart.data.labels = sensRows.map(r => t('tornado.' + r.key));
+    const tornadoKey = isMobile() ? 'tornadoShort.' : 'tornado.';
+    window.sensChart.data.labels = sensRows.map(r => t(tornadoKey + r.key));
     window.sensChart.data.datasets[0].label = t('chart.tornado20down');
     window.sensChart.data.datasets[1].label = t('chart.tornado20up');
-    window.sensChart.options.scales.x.title.text = t('chart.tornadoX');
+    window.sensChart.options = sensOptions();
+    // Restore the now-overwritten title text with translated string
+    if (window.sensChart.options.scales.x.title.display) {
+      window.sensChart.options.scales.x.title.text = t('chart.tornadoX');
+    }
     window.sensChart.options.plugins.tooltip.callbacks.label = (ctx) => t('chart.deltaNpv') + fmtBs(ctx.parsed.x, 0) + ' VND';
     window.sensChart.update();
   }
 }
+
+// Re-render charts on viewport changes (debounced) so mobile/desktop options swap
+let __resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(__resizeTimer);
+  __resizeTimer = setTimeout(() => {
+    rebuildCharts();
+    recompute();
+  }, 200);
+});
 
 // Localized cf options factory
 function cfOptionsLocalized(result) {
