@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>K-12 Bilingual School — Investment Case</title>
+<meta name="description" content="Analytical case for a K-12 bilingual school in central HCMC. Live model — NPV, IRR, and payback recompute on slider changes.">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* Password gate */
+  #gate {
+    position: fixed; inset: 0; z-index: 1000;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  #gate.hidden { display: none; }
+  .gate-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 12px;
+    padding: 40px 36px;
+    max-width: 380px;
+    width: calc(100% - 32px);
+    text-align: left;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  }
+  .gate-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: rgba(255,255,255,0.65);
+    margin-bottom: 8px;
+  }
+  .gate-card h2 {
+    font-size: 22px; font-weight: 600; color: white;
+    letter-spacing: -0.01em; margin-bottom: 8px;
+  }
+  .gate-card p {
+    font-size: 14px; color: rgba(255,255,255,0.75);
+    line-height: 1.5; margin-bottom: 22px;
+  }
+  .gate-card form { display: flex; flex-direction: column; gap: 10px; }
+  .gate-card input {
+    width: 100%; padding: 12px 14px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 6px;
+    color: white; font-size: 15px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: 0.04em;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .gate-card input:focus {
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.18);
+  }
+  .gate-card input::placeholder { color: rgba(255,255,255,0.4); }
+  .gate-card button {
+    padding: 12px 14px;
+    background: white; color: #1e3a8a;
+    border: none; border-radius: 6px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .gate-card button:hover { background: #eff6ff; }
+  .gate-error {
+    margin-top: 10px;
+    font-size: 13px; color: #fecaca;
+    min-height: 18px;
+  }
+  .gate-foot {
+    margin-top: 22px; padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    font-size: 12px; color: rgba(255,255,255,0.5);
+  }
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f8fafc;
+    --bg-deep: #f1f5f9;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --ink-3: #64748b;
+    --ink-4: #94a3b8;
+    --line: #e2e8f0;
+    --line-2: #cbd5e1;
+    --blue-9: #172554;
+    --blue-8: #1e3a8a;
+    --blue-7: #1d4ed8;
+    --blue-6: #2563eb;
+    --blue-5: #3b82f6;
+    --blue-3: #93c5fd;
+    --blue-2: #bfdbfe;
+    --blue-1: #dbeafe;
+    --blue-0: #eff6ff;
+    --red: #dc2626;
+    --red-soft: #fecaca;
+    --red-fill: rgba(220, 38, 38, 0.10);
+    --green: #059669;
+    --green-fill: rgba(5, 150, 105, 0.10);
+    --amber: #b45309;
+    --amber-soft: #fde68a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    font-size: 16px;
+    font-feature-settings: "ss01" 1, "kern" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--blue-7); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Topnav */
+  .topnav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topnav-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 12px 32px;
+    display: flex; align-items: center; gap: 24px;
+    font-size: 13px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; color: var(--ink);
+    flex-shrink: 0;
+  }
+  .brand-dot {
+    width: 10px; height: 10px; border-radius: 2px;
+    background: var(--blue-7);
+  }
+  .brand-name { letter-spacing: -0.01em; }
+  .topnav .links { display: flex; gap: 18px; flex-wrap: wrap; }
+  .topnav .links a { color: var(--ink-3); font-weight: 500; }
+  .topnav .links a:hover { color: var(--blue-7); text-decoration: none; }
+  .topnav .meta { margin-left: auto; color: var(--ink-4); font-size: 12px; display: flex; align-items: center; gap: 12px; }
+  .lang-toggle {
+    display: inline-flex; align-items: center;
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 4px; padding: 2px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .lang-toggle button {
+    background: none; border: none; cursor: pointer;
+    padding: 4px 10px; border-radius: 3px;
+    color: var(--ink-3); font: inherit;
+    transition: all 0.15s;
+  }
+  .lang-toggle button:hover { color: var(--blue-7); }
+  .lang-toggle button.active {
+    background: var(--blue-7); color: white;
+  }
+
+  /* Layout */
+  section { padding: 72px 32px; border-bottom: 1px solid var(--line); }
+  .container { max-width: 1280px; margin: 0 auto; }
+  .section-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--blue-7);
+    margin-bottom: 14px;
+  }
+  h1, h2, h3 { letter-spacing: -0.02em; line-height: 1.15; color: var(--ink); }
+  h1 { font-size: 56px; font-weight: 700; max-width: 920px; }
+  h2 { font-size: 32px; font-weight: 600; margin-bottom: 12px; }
+  h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .lede {
+    font-size: 20px; color: var(--ink-2); max-width: 800px;
+    margin-top: 18px; line-height: 1.5;
+  }
+  p { color: var(--ink-2); margin-bottom: 14px; }
+  p strong, p b { color: var(--ink); font-weight: 600; }
+  small, .small { font-size: 12px; color: var(--ink-3); }
+
+  /* Hero */
+  .hero { padding-top: 96px; padding-bottom: 84px; background: linear-gradient(180deg, var(--blue-0) 0%, var(--bg) 100%); border-bottom: 1px solid var(--line); }
+  .hero h1 { font-size: 60px; }
+  .hero .dek {
+    font-size: 22px; color: var(--ink-2); max-width: 880px;
+    margin-top: 24px; line-height: 1.45;
+  }
+  .hero .dek b { color: var(--ink); font-weight: 700; }
+  .stats {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+    background: var(--line); border: 1px solid var(--line); border-radius: 8px;
+    overflow: hidden;
+    margin-top: 48px;
+  }
+  .stat {
+    background: var(--bg);
+    padding: 22px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .stat-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .stat-value {
+    font-size: 28px; font-weight: 700; color: var(--ink);
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .stat-unit { font-size: 14px; color: var(--ink-3); font-weight: 500; }
+  .stat-foot { font-size: 11px; color: var(--ink-4); margin-top: 4px; }
+  .stat.deficit .stat-value { color: var(--red); }
+  .stat.positive .stat-value { color: var(--green); }
+
+  /* Grids */
+  .two-col {
+    display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px;
+    margin-top: 36px;
+    align-items: start;
+  }
+  .three-col {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    margin-top: 36px;
+  }
+  .two-col .stack > * + * { margin-top: 16px; }
+
+  /* Cards */
+  .card {
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 24px;
+  }
+  .card-soft { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+  .figure-stat {
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 16px;
+    display: grid; gap: 6px;
+  }
+  .figure-stat .v {
+    font-size: 24px; font-weight: 700; color: var(--ink);
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .figure-stat .l { font-size: 12px; color: var(--ink-3); }
+  .figure-stat .src { font-size: 11px; color: var(--ink-4); }
+  .figure-stat-blue { background: var(--blue-0); border-color: var(--blue-2); }
+  .figure-stat-blue .v { color: var(--blue-8); }
+
+  /* Tables */
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px; margin-top: 16px;
+  }
+  th, td {
+    padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    font-weight: 600; color: var(--ink-3); font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    background: var(--bg-soft);
+  }
+  td.num, th.num { text-align: right; }
+  tr:last-child td { border-bottom: none; }
+  table.compact th, table.compact td { padding: 7px 10px; font-size: 13px; }
+  table .total { font-weight: 700; color: var(--ink); border-top: 2px solid var(--line-2); }
+
+  /* Charts */
+  .chart-box {
+    position: relative;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 24px;
+    margin-top: 24px;
+  }
+  .chart-box.big { padding: 32px; }
+  .chart-canvas { position: relative; height: 360px; }
+  .chart-box.big .chart-canvas { height: 480px; }
+  .chart-caption {
+    margin-top: 14px; font-size: 13px; color: var(--ink-3); line-height: 1.5;
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+
+  /* Gallery */
+  .gallery {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-top: 28px;
+  }
+  .gallery figure {
+    position: relative; overflow: hidden;
+    border-radius: 6px; background: var(--bg-soft);
+    border: 1px solid var(--line);
+  }
+  .gallery img {
+    width: 100%; height: 180px; object-fit: cover; display: block;
+    transition: transform 0.4s ease;
+  }
+  .gallery figure:hover img { transform: scale(1.04); }
+  .gallery figcaption {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, transparent, rgba(15,23,42,0.78));
+    color: white; font-size: 12px; font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* Floor stack */
+  .floor-stack {
+    display: grid; gap: 4px;
+    margin-top: 16px; max-width: 480px;
+  }
+  .floor {
+    display: grid; grid-template-columns: 80px 1fr 60px;
+    align-items: center; gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--line); border-radius: 4px;
+    background: var(--bg);
+    font-size: 13px;
+  }
+  .floor-label { font-weight: 600; color: var(--ink); }
+  .floor-use { color: var(--ink-2); font-size: 12px; }
+  .floor-tag { font-size: 10px; color: var(--ink-4); text-align: right; text-transform: uppercase; letter-spacing: 0.06em; }
+  .floor.primary { background: var(--blue-0); border-color: var(--blue-2); }
+  .floor.secondary { background: var(--blue-1); border-color: var(--blue-3); }
+  .floor.shared { background: var(--bg-soft); }
+
+  /* Live model */
+  .model-grid {
+    display: grid; grid-template-columns: 360px 1fr; gap: 32px;
+    margin-top: 32px; align-items: start;
+  }
+  .controls {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 8px; padding: 24px;
+    position: sticky; top: 80px;
+  }
+  .control + .control { margin-top: 16px; }
+  .control label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13px; color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .control label .lab { font-weight: 500; }
+  .control label .val {
+    font-weight: 600; color: var(--blue-8);
+    font-variant-numeric: tabular-nums;
+    background: var(--blue-1); padding: 2px 8px; border-radius: 4px;
+    font-size: 12px;
+  }
+  .control input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px; background: var(--line);
+    border-radius: 2px; outline: none;
+    cursor: pointer;
+  }
+  .control input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--blue-7); border: 2px solid white;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .control input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--blue-7); border: 2px solid white;
+    cursor: pointer;
+  }
+  .control .toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 0; }
+  .control .toggle input { accent-color: var(--blue-7); width: 14px; height: 14px; }
+  .reset-btn {
+    margin-top: 18px; width: 100%;
+    padding: 10px; font-size: 13px; font-weight: 600;
+    background: var(--bg); border: 1px solid var(--line-2);
+    color: var(--ink-2); border-radius: 6px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { background: var(--blue-0); border-color: var(--blue-3); color: var(--blue-7); }
+
+  .outputs-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 18px;
+  }
+  .output {
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 14px 16px;
+  }
+  .output .l { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+  .output .v { font-size: 22px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .output .v.deficit { color: var(--red); }
+  .output .v.positive { color: var(--green); }
+  .output .delta { font-size: 11px; margin-top: 4px; color: var(--ink-4); font-variant-numeric: tabular-nums; }
+  .output .delta.up { color: var(--green); }
+  .output .delta.down { color: var(--red); }
+
+  .diff-panel {
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--blue-5);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  .diff-panel .diff-title { font-weight: 600; color: var(--ink-2); margin-bottom: 4px; }
+  .diff-panel.empty { color: var(--ink-4); }
+
+  /* Scenarios */
+  .scenarios {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    margin-top: 28px;
+  }
+  .scenario {
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 24px; background: var(--bg);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .scenario.base { border-color: var(--blue-3); background: var(--blue-0); }
+  .scenario .badge {
+    display: inline-block; padding: 3px 10px;
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 12px; font-size: 11px; font-weight: 600;
+    color: var(--ink-3); letter-spacing: 0.04em;
+    width: fit-content;
+  }
+  .scenario.base .badge { background: var(--blue-7); color: white; border-color: var(--blue-7); }
+  .scenario h3 { margin: 0; }
+  .scenario .npv {
+    margin-top: auto;
+    padding-top: 14px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .scenario.base .npv { border-top-color: var(--blue-2); }
+  .scenario .npv .lab { font-size: 12px; color: var(--ink-3); }
+  .scenario .npv .val { font-size: 22px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .pw-npv {
+    margin-top: 22px;
+    padding: 18px 24px;
+    background: var(--blue-8); color: white;
+    border-radius: 6px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .pw-npv .lab { font-size: 13px; color: var(--blue-2); font-weight: 500; }
+  .pw-npv .val { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Risks list */
+  .risk-list { counter-reset: risk; margin-top: 28px; }
+  .risk {
+    counter-increment: risk;
+    display: grid; grid-template-columns: 36px 1fr;
+    gap: 14px; padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .risk:last-child { border-bottom: none; }
+  .risk::before {
+    content: counter(risk, decimal-leading-zero);
+    font-size: 13px; font-weight: 700;
+    color: var(--blue-7);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+  }
+  .risk h3 { font-size: 16px; margin-bottom: 4px; }
+  .risk p { font-size: 14px; margin-bottom: 0; }
+
+  /* Sources */
+  .sources-list { list-style: none; counter-reset: src; margin-top: 24px; }
+  .sources-list li {
+    counter-increment: src;
+    padding: 12px 0 12px 36px;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .sources-list li:last-child { border-bottom: none; }
+  .sources-list li::before {
+    content: "[" counter(src) "]";
+    position: absolute; left: 0;
+    font-weight: 600; color: var(--blue-7);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+  }
+  .sources-list .ref {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-left: 6px;
+  }
+
+  /* Footer */
+  footer {
+    padding: 40px 32px;
+    background: var(--bg-soft);
+    color: var(--ink-3); font-size: 12px;
+    text-align: center;
+  }
+
+  /* Inline ref markers */
+  sup.ref {
+    font-size: 10px; color: var(--blue-7);
+    font-weight: 600; padding: 0 2px;
+    cursor: pointer;
+  }
+  sup.ref:hover { background: var(--blue-1); border-radius: 2px; }
+
+  /* Tag */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--blue-1); color: var(--blue-8);
+    font-size: 11px; font-weight: 600;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+  .tag.amber { background: var(--amber-soft); color: var(--amber); }
+  .tag.red { background: var(--red-soft); color: var(--red); }
+
+  /* Anchor highlight */
+  .deepest-marker {
+    color: var(--red); font-weight: 600;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .two-col { grid-template-columns: 1fr; gap: 32px; }
+    .three-col { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .scenarios { grid-template-columns: 1fr; }
+    .model-grid { grid-template-columns: 1fr; }
+    .controls { position: static; }
+    .outputs-row { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 40px; }
+    h2 { font-size: 26px; }
+    .topnav .links { gap: 12px; font-size: 12px; }
+    .topnav .meta { display: none; }
+  }
+  @media (max-width: 640px) {
+    section { padding: 48px 20px; }
+    .hero { padding-top: 56px; padding-bottom: 52px; }
+    .hero h1 { font-size: 32px; }
+    .hero .dek { font-size: 17px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat-value { font-size: 22px; }
+    .gallery { grid-template-columns: 1fr; }
+    .topnav-inner { padding: 10px 16px; gap: 12px; overflow-x: auto; }
+    .topnav .links { flex-wrap: nowrap; }
+    .outputs-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="gate" aria-modal="true" role="dialog" aria-label="Restricted content">
+  <div class="gate-card">
+    <div class="gate-eyebrow" data-i18n="gate.eyebrow">Restricted · Investment Materials</div>
+    <h2 data-i18n="gate.h">Access required</h2>
+    <p data-i18n="gate.p">This page contains confidential investment analysis. Enter the access key you were provided to continue.</p>
+    <form id="gate-form" autocomplete="off">
+      <input type="password" id="gate-input" data-i18n-attr="placeholder" data-i18n="gate.placeholder" placeholder="Access key" autofocus spellcheck="false" autocapitalize="off" autocorrect="off">
+      <button type="submit" data-i18n="gate.btn">Unlock</button>
+    </form>
+    <div class="gate-error" id="gate-error" aria-live="polite"></div>
+    <div class="gate-foot">
+      <span data-i18n="gate.foot">If you don't have a key, contact the deal team.</span>
+      <div style="margin-top: 8px;">
+        <button type="button" id="gate-lang-en" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font:inherit;padding:0 6px;text-decoration:underline;">EN</button>
+        <span style="color:rgba(255,255,255,0.3);">·</span>
+        <button type="button" id="gate-lang-vi" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font:inherit;padding:0 6px;text-decoration:underline;">VI</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">Toàn Việt × Tây Nam · Project I</span>
+    </div>
+    <div class="links">
+      <a href="#market" data-i18n="nav.market">Market</a>
+      <a href="#school" data-i18n="nav.school">School</a>
+      <a href="#ramp" data-i18n="nav.ramp">Ramp</a>
+      <a href="#cashflow" data-i18n="nav.cashflow">Cash flow</a>
+      <a href="#model" data-i18n="nav.model">Model</a>
+      <a href="#scenarios" data-i18n="nav.scenarios">Scenarios</a>
+      <a href="#sensitivity" data-i18n="nav.sensitivity">Sensitivity</a>
+      <a href="#risks" data-i18n="nav.risks">Risks</a>
+      <a href="#sources" data-i18n="nav.sources">Sources</a>
+    </div>
+    <div class="meta">
+      <span data-i18n="topnav.version">v1 · May 2026</span>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" class="active">EN</button>
+        <button type="button" data-lang="vi">VI</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="hero.eyebrow">Toàn Việt × Tây Nam · K-12 Bilingual School · Investment Case · Đường Thành Thái, Phường Diên Hồng, TP HCM</div>
+    <h1 data-i18n="hero.h1">A K-12 bilingual school on Đường Thành Thái, Phường Diên Hồng, TP HCM.</h1>
+    <p class="dek" data-i18n="hero.dek">
+      <b>35% pre-tax IRR</b> over 35 years — but it asks investors to fund a
+      <b>176 B VND cumulative shortfall</b> before the math turns.
+    </p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label" data-i18n="hero.s1.l">Initial CapEx</div>
+        <div class="stat-value"><span data-i18n="hero.s1.v">50</span><span class="stat-unit" data-i18n="unit.bvnd"> B VND</span></div>
+        <div class="stat-foot" data-i18n="hero.s1.f">Year 0 — facility renovation</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label" data-i18n="hero.s2.l">Expansion CapEx</div>
+        <div class="stat-value"><span data-i18n="hero.s2.v">200</span><span class="stat-unit" data-i18n="unit.bvnd"> B VND</span></div>
+        <div class="stat-foot" data-i18n="hero.s2.f">Year 3 — capacity build-out</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label" data-i18n="hero.s3.l">Max Enrollment</div>
+        <div class="stat-value"><span data-i18n="hero.s3.v">2,000</span><span class="stat-unit" data-i18n="unit.students"> students</span></div>
+        <div class="stat-foot" data-i18n="hero.s3.f">~Year 10 — at capacity</div>
+      </div>
+      <div class="stat deficit">
+        <div class="stat-label" data-i18n="hero.s4.l">5-yr cumulative</div>
+        <div class="stat-value" id="hero-cum5">−66<span class="stat-unit" data-i18n="unit.bvnd"> B VND</span></div>
+        <div class="stat-foot" data-i18n="hero.s4.f">Through end of Year 5</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label" data-i18n="hero.s5.l">Cash Payback</div>
+        <div class="stat-value" id="hero-payback">Y5.86</div>
+        <div class="stat-foot" data-i18n="hero.s5.f">When cumulative crosses zero</div>
+      </div>
+      <div class="stat positive">
+        <div class="stat-label" data-i18n="hero.s6.l">35-yr NPV @ 8%</div>
+        <div class="stat-value" id="hero-npv">814<span class="stat-unit" data-i18n="unit.bvnd"> B VND</span></div>
+        <div class="stat-foot"><span data-i18n="hero.s6.f">IRR </span><span id="hero-irr">35.0%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §1 MARKET ====================== -->
+<section id="market">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="market.eyebrow">§1 — Market Context</div>
+    <h2 data-i18n="market.h2">Demand exists. Supply is constrained. Policy points the right way.</h2>
+    <p class="lede" data-i18n="market.lede">
+      The case for a new private bilingual school at Đường Thành Thái, Phường Diên Hồng (the
+      newly reorganized ward in former Quận 10, central HCMC) rests on three things the city's
+      own published numbers establish: a school-age population still growing in absolute terms,
+      a system-wide gap in teachers and classrooms, and a national-level decision to make
+      English the second language of instruction in schools.
+    </p>
+
+    <div class="three-col">
+      <div class="figure-stat figure-stat-blue">
+        <div class="v" data-i18n="market.f1.v">2,528,789</div>
+        <div class="l" data-i18n="market.f1.l">HCMC students (mầm non → phổ thông), 2025–26<sup class="ref">1</sup></div>
+        <div class="src" data-i18n="market.f1.s">+39,632 vs prior year</div>
+      </div>
+      <div class="figure-stat figure-stat-blue">
+        <div class="v" data-i18n="market.f2.v">+42,978</div>
+        <div class="l" data-i18n="market.f2.l">Net new lower-secondary (THCS) students this year<sup class="ref">1</sup></div>
+        <div class="src" data-i18n="market.f2.s">Largest single-level increase</div>
+      </div>
+      <div class="figure-stat figure-stat-blue">
+        <div class="v" data-i18n="market.f3.v">1,287</div>
+        <div class="l" data-i18n="market.f3.l">New classrooms HCMC plans to add this year<sup class="ref">1</sup></div>
+        <div class="src" data-i18n="market.f3.s">Acknowledged as still insufficient</div>
+      </div>
+      <div class="figure-stat">
+        <div class="v" data-i18n="market.f4.v">4,865</div>
+        <div class="l" data-i18n="market.f4.l">Teachers HCMC's Sở GD&amp;ĐT needs to recruit, 2025–26<sup class="ref">2</sup></div>
+        <div class="src" data-i18n="market.f4.s">Against ~110,000 currently</div>
+      </div>
+      <div class="figure-stat">
+        <div class="v" data-i18n="market.f5.v">~3,500</div>
+        <div class="l" data-i18n="market.f5.l">Schools currently in HCMC<sup class="ref">2</sup></div>
+        <div class="src" data-i18n="market.f5.s">Across all levels and types</div>
+      </div>
+      <div class="figure-stat">
+        <div class="v" data-i18n="market.f6.v">QĐ 2371</div>
+        <div class="l" data-i18n="market.f6.l">National decision to make English the second language in schools, 2025–2035 with vision to 2045<sup class="ref">3</sup></div>
+        <div class="src" data-i18n="market.f6.s">Government decision, 2025</div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top: 48px;">
+      <div class="stack">
+        <h3 data-i18n="market.acknowledge.h">What the city itself acknowledges</h3>
+        <p data-i18n="market.acknowledge.p1">
+          HCMC's own 2024–25 general-education report concedes the network of schools and classrooms
+          <em>"still does not meet learning demand"</em>: class sizes remain elevated due to mechanical population growth, and some
+          wards still lack a primary school entirely. The city is shifting toward what it calls a
+          <em>"high-quality, advanced, internationally integrated"</em> private-school model to absorb pressure on the
+          public system.<sup class="ref">2</sup>
+        </p>
+        <p data-i18n="market.acknowledge.p2">
+          Two regulatory tailwinds compound the demand picture: the national QĐ 2371 program
+          formalizes English as the second language of instruction in schools (2025–2035), and the
+          local administrative reorganization under NQ 1685/NQ-UBTVQH15 created Phường Diên Hồng
+          (merging former Phường 6, Phường 8, and part of Phường 14 of Quận 10), redrawing the
+          catchment area for this site.<sup class="ref">3,4</sup>
+        </p>
+      </div>
+      <div class="stack">
+        <h3 data-i18n="market.bilingual.h">Why "bilingual" specifically</h3>
+        <p data-i18n="market.bilingual.p1">
+          Two-thirds of HCMC parents in the income bands that can support 15–20 M VND/month tuition
+          treat English-medium content as a base requirement, not a premium feature. A
+          Bộ GD&amp;ĐT-curriculum school with bilingual subject delivery — and a planned
+          chương trình tích hợp (integrated dual-diploma) pathway with a private K-12 partner
+          school in the United States<sup class="ref">5</sup> — sits exactly where regulatory direction
+          and parent demand intersect.
+        </p>
+        <p data-i18n="market.bilingual.p2">
+          The case <em>does not</em> rest on being the only or best bilingual school in the area.
+          It rests on the gap between the addressable enrollment in this catchment and the
+          number of qualified seats. The §3 ramp models a school that captures ~1,000 of those seats
+          by Year 5, growing to a 2,000-student cap thereafter — a small fraction of the
+          THCS-level annual increase alone.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §2 THE SCHOOL ====================== -->
+<section id="school" style="background: var(--bg-soft);">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="school.eyebrow">§2 — The School</div>
+    <h2 data-i18n="school.h2">What's being built.</h2>
+    <p class="lede" data-i18n="school.lede">
+      A multi-level facility on Đường Thành Thái, Phường Diên Hồng, TP HCM — an existing
+      structure being renovated and expanded by Công ty Tây Nam (the facility owner), operated
+      under the Toàn Việt brand. Year 0 is the renovation of the existing building; Year 3 is
+      an expansion build to support the full 2,000-student capacity.
+    </p>
+
+    <div class="two-col" style="margin-top: 36px;">
+      <div class="stack">
+        <h3 data-i18n="school.struct.h">Operating structure — Tây Nam ↔ Toàn Việt</h3>
+        <p data-i18n="school.struct.p1">
+          Two-entity setup. <strong>Công ty Tây Nam</strong> holds the property and is responsible
+          for the physical asset and long-term lease (35 years). <strong>Công ty Toàn Việt</strong>
+          (or a Toàn Việt-brand operator) — separate legal entity, same shareholder group — runs
+          the school under its own brand and is responsible for curriculum, staff, and admissions.
+          The school will pursue chương trình tích hợp with a US private K-12 partner school after
+          licensing.<sup class="ref">5</sup>
+        </p>
+        <p data-i18n="school.struct.p2">
+          The base case treats land rent between Tây Nam and Toàn Việt as zero, since Tây Nam
+          is the intercompany lessor. The §5 live model has a market-rent slider so investors
+          can stress this assumption against a hypothetical arm's-length rent — relevant if the
+          structure ever unwinds or if Toàn Việt is evaluated standalone.
+        </p>
+
+        <h3 style="margin-top: 24px;" data-i18n="school.cap.h">Capacity at maturity</h3>
+        <table class="compact">
+          <thead>
+            <tr>
+              <th data-i18n="school.cap.thlevel">Level</th>
+              <th class="num" data-i18n="school.cap.thclasses">Classes</th>
+              <th class="num" data-i18n="school.cap.thstudents">Students</th>
+              <th class="num" data-i18n="school.cap.thteachers">Teachers</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td data-i18n="school.cap.primary">Primary (Lớp 1–5)</td><td class="num">33</td><td class="num">990</td><td class="num">52</td></tr>
+            <tr><td data-i18n="school.cap.thcs">Lower-secondary / THCS (6–9)</td><td class="num">18</td><td class="num">540</td><td class="num">36</td></tr>
+            <tr><td data-i18n="school.cap.thpt">High school / THPT (10–12)</td><td class="num">17</td><td class="num">470</td><td class="num">38</td></tr>
+            <tr class="total"><td data-i18n="school.cap.total">Total at capacity</td><td class="num">68</td><td class="num">2,000</td><td class="num">126</td></tr>
+          </tbody>
+        </table>
+        <p class="small" style="margin-top: 10px;" data-i18n="school.cap.note">
+          ~400 total staff at capacity including admin, support, and operations.<sup class="ref">5</sup>
+        </p>
+      </div>
+
+      <div class="stack">
+        <h3 data-i18n="school.floor.h">Floor allocation</h3>
+        <div class="floor-stack">
+          <div class="floor shared"><span class="floor-label">Tầng KT</span><span class="floor-use" data-i18n="school.floor.tech">Technical floor — services, observation</span><span class="floor-tag" data-i18n="school.floor.tagTech">Tech</span></div>
+          <div class="floor shared"><span class="floor-label">Tầng 5</span><span class="floor-use" data-i18n="school.floor.f5">Auditorium, performing arts, multi-purpose</span><span class="floor-tag" data-i18n="school.floor.tagShared">Shared</span></div>
+          <div class="floor secondary"><span class="floor-label">Tầng 4</span><span class="floor-use" data-i18n="school.floor.f4">THCS / THPT classrooms, language rooms, faculty</span><span class="floor-tag" data-i18n="school.floor.tagSec">Sec</span></div>
+          <div class="floor secondary"><span class="floor-label">Tầng 3</span><span class="floor-use" data-i18n="school.floor.f3">THCS / THPT classrooms, music, dance, library</span><span class="floor-tag" data-i18n="school.floor.tagSec">Sec</span></div>
+          <div class="floor primary"><span class="floor-label">Tầng 2</span><span class="floor-use" data-i18n="school.floor.f2">Primary classrooms, language rooms</span><span class="floor-tag" data-i18n="school.floor.tagPrim">Primary</span></div>
+          <div class="floor primary"><span class="floor-label">Tầng lửng</span><span class="floor-use" data-i18n="school.floor.fmez">Primary library, office</span><span class="floor-tag" data-i18n="school.floor.tagPrim">Primary</span></div>
+          <div class="floor primary"><span class="floor-label">Tầng 1</span><span class="floor-use" data-i18n="school.floor.f1">Lobby, reception, primary library, exhibits</span><span class="floor-tag" data-i18n="school.floor.tagPrim">Primary</span></div>
+          <div class="floor shared"><span class="floor-label">Đỗ xe</span><span class="floor-use" data-i18n="school.floor.fpark">Parking, technical, stairs, lift access</span><span class="floor-tag" data-i18n="school.floor.tagSvc">Service</span></div>
+        </div>
+        <p class="small" style="margin-top: 12px;" data-i18n="school.floor.note">
+          Floor use per source project document, Section 4. Primary occupies ground floor through
+          Tầng 2 to minimize vertical movement for younger students; secondary on Tầng 3–4; shared
+          assets (auditorium, sports) on Tầng 5 and ground.
+        </p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 56px;" data-i18n="school.gallery.h">Facility — design renders</h3>
+    <p style="max-width: 700px;" data-i18n="school.gallery.p">
+      Architectural renders from the project document. The facility includes
+      standard classrooms, specialty rooms (STEM / food-tech / makerspace, art, music, dance),
+      a science lab, library, auditorium, sports facilities (gym, pool), and dining.
+    </p>
+
+    <div class="gallery">
+      <figure><img src="img/classroom-1.jpg" alt="Standard classroom" loading="lazy"><figcaption data-i18n="gal.classroom1">Standard classroom</figcaption></figure>
+      <figure><img src="img/classroom-2.jpg" alt="Classroom alt configuration" loading="lazy"><figcaption data-i18n="gal.classroom2">Classroom — alt layout</figcaption></figure>
+      <figure><img src="img/library.jpg" alt="Library" loading="lazy"><figcaption data-i18n="gal.library">Library</figcaption></figure>
+      <figure><img src="img/science-lab.jpg" alt="Science lab" loading="lazy"><figcaption data-i18n="gal.science">Science lab</figcaption></figure>
+      <figure><img src="img/food-tech.jpg" alt="Food technology / STEM kitchen" loading="lazy"><figcaption data-i18n="gal.foodtech">STEM — food technology</figcaption></figure>
+      <figure><img src="img/makerspace.jpg" alt="Makerspace" loading="lazy"><figcaption data-i18n="gal.maker">Makerspace</figcaption></figure>
+      <figure><img src="img/dance-studio.jpg" alt="Dance studio" loading="lazy"><figcaption data-i18n="gal.dance">Dance studio</figcaption></figure>
+      <figure><img src="img/auditorium.jpg" alt="Auditorium" loading="lazy"><figcaption data-i18n="gal.auditorium">Auditorium</figcaption></figure>
+      <figure><img src="img/multipurpose.jpg" alt="Multipurpose hall" loading="lazy"><figcaption data-i18n="gal.multi">Multi-purpose hall</figcaption></figure>
+      <figure><img src="img/sports-gym.jpg" alt="Sports gymnasium" loading="lazy"><figcaption data-i18n="gal.gym">Sports gymnasium</figcaption></figure>
+      <figure><img src="img/pool.jpg" alt="Swimming pool" loading="lazy"><figcaption data-i18n="gal.pool">Swimming pool</figcaption></figure>
+      <figure><img src="img/canteen.jpg" alt="Student canteen" loading="lazy"><figcaption data-i18n="gal.canteen">Student canteen</figcaption></figure>
+      <figure><img src="img/cafeteria.jpg" alt="Cafeteria / dining" loading="lazy"><figcaption data-i18n="gal.cafeteria">Cafeteria</figcaption></figure>
+      <figure><img src="img/staff-office.jpg" alt="Staff offices" loading="lazy"><figcaption data-i18n="gal.office">Staff offices</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §3 RAMP ====================== -->
+<section id="ramp">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="ramp.eyebrow">§3 — The 5-Year Ramp</div>
+    <h2 data-i18n="ramp.h2">How the school fills.</h2>
+    <p class="lede" data-i18n="ramp.lede">
+      The first cohort opens with primary and lower-secondary only. High school launches in
+      Year 4 once the primary base is mature. Year 5 reaches 1,020 students — about half the
+      eventual capacity.
+    </p>
+
+    <div class="two-col" style="margin-top: 36px;">
+      <div>
+        <div class="chart-box" style="margin-top: 0;">
+          <div class="chart-canvas"><canvas id="rampChart"></canvas></div>
+          <div class="chart-caption" data-i18n="ramp.chartcap">
+            Stacked enrollment by level. Primary (cấp 1) does the early work; lower-secondary
+            (THCS) compounds; high school (THPT) joins in Year 4 as the first primary cohorts
+            graduate to upper levels. Source: project document, Section 8.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <table class="compact">
+          <thead>
+            <tr>
+              <th data-i18n="ramp.thlevel">Level</th>
+              <th class="num">Y1</th><th class="num">Y2</th><th class="num">Y3</th>
+              <th class="num">Y4</th><th class="num">Y5</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td data-i18n="ramp.primClasses">Primary classes</td><td class="num">5</td><td class="num">9</td><td class="num">13</td><td class="num">15</td><td class="num">19</td></tr>
+            <tr><td data-i18n="ramp.primStudents">Primary students</td><td class="num">150</td><td class="num">270</td><td class="num">390</td><td class="num">450</td><td class="num">570</td></tr>
+            <tr><td data-i18n="ramp.thcsClasses">THCS classes</td><td class="num">2</td><td class="num">5</td><td class="num">8</td><td class="num">9</td><td class="num">11</td></tr>
+            <tr><td data-i18n="ramp.thcsStudents">THCS students</td><td class="num">60</td><td class="num">150</td><td class="num">240</td><td class="num">270</td><td class="num">330</td></tr>
+            <tr><td data-i18n="ramp.thptClasses">THPT classes</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">4</td></tr>
+            <tr><td data-i18n="ramp.thptStudents">THPT students</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">90</td><td class="num">120</td></tr>
+            <tr class="total"><td data-i18n="ramp.totalStudents">Total students</td><td class="num">210</td><td class="num">420</td><td class="num">630</td><td class="num">810</td><td class="num">1,020</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 28px;" data-i18n="ramp.tuition.h">Tuition assumptions</h3>
+        <table class="compact">
+          <thead><tr><th data-i18n="ramp.thlevel">Level</th><th class="num" data-i18n="ramp.tuition.thmo">VND/student/month</th><th class="num" data-i18n="ramp.tuition.thyr">VND/student/year (10 mo)</th></tr></thead>
+          <tbody>
+            <tr><td data-i18n="school.cap.primary">Primary</td><td class="num">15 M</td><td class="num">150 M</td></tr>
+            <tr><td data-i18n="school.cap.thcs">Lower-secondary (THCS)</td><td class="num">20 M</td><td class="num">200 M</td></tr>
+            <tr><td data-i18n="school.cap.thpt">High school (THPT)</td><td class="num">20 M</td><td class="num">200 M</td></tr>
+          </tbody>
+        </table>
+        <p class="small" style="margin-top: 8px;" data-i18n="ramp.tuition.note">
+          10 months of tuition collected per academic year. The source model holds tuition flat
+          across 35 years (effective 0% inflation — see §8). The §5 live model defaults to the
+          same; the inflation slider lets you compound at any rate up to 5%/yr to see the upside.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §4 ECONOMIC SHAPE ====================== -->
+<section id="cashflow" style="background: var(--bg-soft);">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="cf.eyebrow">§4 — The Economic Shape</div>
+    <h2 data-i18n="cf.h2">The cumulative cash flow tells the whole story.</h2>
+    <p class="lede" data-i18n="cf.lede">
+      This is the curve every investor in this case has to be comfortable with: a deep early
+      trough driven by the Y3 expansion CapEx, then a long, steady recovery as enrollment
+      compounds toward the 2,000 cap.
+    </p>
+
+    <div class="chart-box big">
+      <div class="chart-canvas"><canvas id="cashflowChart"></canvas></div>
+      <div class="chart-caption" data-i18n="cf.chartcap">
+        Cumulative pre-tax cash flow, 35 years, base case. Red zone = cumulative deficit;
+        blue zone = cumulative surplus. The curve is driven by the Y3 expansion CapEx (−200 B
+        VND); the 50 B Y0 renovation alone never gets the project below −38 B before operations
+        begin recovering it. <span class="deepest-marker">Deepest point: Year 3 at −176 B VND</span> ·
+        crossover to positive: Year 5.86. The base case mirrors the source Excel exactly
+        (no tuition inflation, source's hand-tuned Y6+ enrollment ramp). The §5 live model lets
+        you toggle compound inflation and other assumptions to see how the curve shifts.
+      </div>
+    </div>
+
+    <div class="three-col">
+      <div class="card">
+        <h3 data-i18n="cf.card1.h">Year 0–2 — The renovation dip</h3>
+        <p style="font-size: 14px;" data-i18n="cf.card1.p">
+          50 B VND goes out the door in Year 0 to renovate the existing facility. Year 1 opens with
+          210 students; at 35% target margin, Y1 contribution is ~12 B VND, so cumulative ends
+          Y1 at −38 B. By Y2 enrollment doubles to 420; cumulative climbs to about −13 B.
+          <em>Almost back to break-even on the original investment, before Y3 hits.</em>
+        </p>
+      </div>
+      <div class="card" style="border-color: var(--red-soft); background: #fef2f2;">
+        <h3 data-i18n="cf.card2.h">Year 3 — The expansion crash</h3>
+        <p style="font-size: 14px;" data-i18n="cf.card2.p">
+          200 B VND of expansion CapEx hits in Year 3 — the build-out needed to support the
+          full 2,000-student capacity. This is the moment the case lives or dies on. Y3
+          operating profit is healthy (~37 B), but the CapEx swamps it: the cumulative drops
+          from −13 B to <strong>−176 B VND</strong>, the deepest point in the entire 35 years.
+        </p>
+      </div>
+      <div class="card">
+        <h3 data-i18n="cf.card3.h">Year 4–35 — The long climb</h3>
+        <p style="font-size: 14px;" data-i18n="cf.card3.p">
+          From Y4 onward, enrollment grows toward the 2,000 cap (reached around Y10) and there
+          is no further CapEx in the base case. Annual cash flow climbs from ~49 B in Y4 to
+          ~123 B at capacity. Cumulative crosses zero in Y5.86, hits +452 B by Y10, and
+          ~3,500 B by Y35.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §5 LIVE MODEL ====================== -->
+<section id="model">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="model.eyebrow">§5 — Live Model</div>
+    <h2 data-i18n="model.h2">Stress the assumptions yourself.</h2>
+    <p class="lede" data-i18n="model.lede">
+      Every slider below recomputes the cumulative cash-flow curve, the headline NPV/IRR, and
+      payback in real time. Defaults match the base case. The diff against base updates as you
+      change inputs.
+    </p>
+
+    <div class="model-grid">
+      <div class="controls">
+        <h3 style="margin-bottom: 16px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3);" data-i18n="model.controls.h">Assumptions</h3>
+
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.tuP">Tuition — primary</span><span class="val"><span id="v-tuP">15</span> <span data-i18n="unit.mvndmo">M VND/mo</span></span></label>
+          <input type="range" id="s-tuP" min="10" max="25" step="0.5" value="15">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.tuS">Tuition — secondary (THCS)</span><span class="val"><span id="v-tuS">20</span> <span data-i18n="unit.mvndmo">M VND/mo</span></span></label>
+          <input type="range" id="s-tuS" min="12" max="30" step="0.5" value="20">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.tuH">Tuition — high school (THPT)</span><span class="val"><span id="v-tuH">20</span> <span data-i18n="unit.mvndmo">M VND/mo</span></span></label>
+          <input type="range" id="s-tuH" min="12" max="30" step="0.5" value="20">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.op">Operating cost ratio</span><span class="val"><span id="v-op">65</span><span data-i18n="model.s.opUnit">% of revenue</span></span></label>
+          <input type="range" id="s-op" min="50" max="80" step="1" value="65">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.c0">Year-0 CapEx (renovation)</span><span class="val"><span id="v-c0">50</span> <span data-i18n="unit.bvnd2">B VND</span></span></label>
+          <input type="range" id="s-c0" min="30" max="80" step="2" value="50">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.c3">Year-3 CapEx (expansion)</span><span class="val"><span id="v-c3">200</span> <span data-i18n="unit.bvnd2">B VND</span></span></label>
+          <input type="range" id="s-c3" min="100" max="300" step="5" value="200">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.inf">Annual tuition inflation <span style="font-weight:400; color:var(--ink-4);">(source: 0%)</span></span><span class="val"><span id="v-inf">0.00</span>%</span></label>
+          <input type="range" id="s-inf" min="0" max="5" step="0.25" value="0">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.disc">Discount rate</span><span class="val"><span id="v-disc">8.0</span>%</span></label>
+          <input type="range" id="s-disc" min="6" max="12" step="0.25" value="8">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.ramp">Y5 enrollment factor</span><span class="val"><span id="v-ramp">1.00</span>×</span></label>
+          <input type="range" id="s-ramp" min="0.7" max="1.2" step="0.01" value="1.00">
+        </div>
+        <div class="control">
+          <label><span class="lab" data-i18n="model.s.rent">Market rent (intercompany override)</span><span class="val"><span id="v-rent">0</span> <span data-i18n="unit.bvndyr">B VND/yr</span></span></label>
+          <input type="range" id="s-rent" min="0" max="20" step="0.5" value="0">
+        </div>
+        <div class="control">
+          <label class="toggle">
+            <input type="checkbox" id="s-eq">
+            <span data-i18n="model.s.eq">Include 30 B equipment CapEx in Y0</span>
+          </label>
+        </div>
+
+        <button class="reset-btn" id="reset-btn" data-i18n="model.reset">Reset to base case</button>
+      </div>
+
+      <div>
+        <div class="outputs-row">
+          <div class="output">
+            <div class="l" data-i18n="model.o.npv">35-yr NPV</div>
+            <div class="v positive" id="o-npv">814 B</div>
+            <div class="delta" id="d-npv" data-i18n="model.o.base">base case</div>
+          </div>
+          <div class="output">
+            <div class="l" data-i18n="model.o.irr">35-yr IRR</div>
+            <div class="v positive" id="o-irr">35.0%</div>
+            <div class="delta" id="d-irr" data-i18n="model.o.base">base case</div>
+          </div>
+          <div class="output">
+            <div class="l" data-i18n="model.o.payback">Cash payback</div>
+            <div class="v" id="o-payback">Y5.86</div>
+            <div class="delta" id="d-payback" data-i18n="model.o.base">base case</div>
+          </div>
+          <div class="output">
+            <div class="l" data-i18n="model.o.deepest">Deepest cum. CF</div>
+            <div class="v deficit" id="o-deepest">−176 B</div>
+            <div class="delta" id="d-deepest" data-i18n="model.o.atY3">at Year 3</div>
+          </div>
+        </div>
+
+        <div class="chart-box" style="margin-top: 0;">
+          <div class="chart-canvas"><canvas id="liveChart"></canvas></div>
+          <div class="chart-caption" id="live-caption" data-i18n="model.chartcap">
+            Live cumulative cash flow. Drag any slider to see the curve, headline numbers,
+            and the diff panel below all update together.
+          </div>
+        </div>
+
+        <div class="diff-panel empty" id="diff-panel">
+          <div class="diff-title" data-i18n="model.diff.h">What changed</div>
+          <div id="diff-body" data-i18n="model.diff.empty">No changes yet — sliders are at base case.</div>
+        </div>
+
+        <div class="card" style="margin-top: 22px; background: var(--blue-0); border-color: var(--blue-2);">
+          <h3 style="font-size: 14px; color: var(--blue-8);" data-i18n="model.note.h">A note on the cost structure</h3>
+          <p style="font-size: 13px; margin-bottom: 0;" data-i18n="model.note.p">
+            The base case treats operating cost as <strong>65% of revenue</strong> — a target margin,
+            not a built-up cost stack. This implicitly assumes variable cost behavior for staff,
+            which is wrong in early years (teachers are largely fixed against enrollment). The
+            slider lets you stress this; in reality, Y1–Y2 operating cost is likely a higher
+            share of revenue than the late years. A bottom-up cost build is on the v2 list —
+            see §8.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §6 SCENARIOS ====================== -->
+<section id="scenarios" style="background: var(--bg-soft);">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="sc.eyebrow">§6 — Scenarios</div>
+    <h2 data-i18n="sc.h2">Probability-weighted view.</h2>
+    <p class="lede" data-i18n="sc.lede">
+      Three scenarios with assigned probabilities. Each is a small tweak to the base-case
+      assumptions, run through the same model. Probabilities reflect our judgment on demand,
+      execution, and CapEx risk — not historical frequency.
+    </p>
+
+    <div class="scenarios">
+      <div class="scenario">
+        <span class="badge" data-i18n="sc.s1.badge">30% probability</span>
+        <h3 data-i18n="sc.s1.h">1 — Slow ramp</h3>
+        <p style="font-size: 14px;" data-i18n="sc.s1.p1">
+          Y5 enrollment lands at 70% of plan (~715 students vs 1,020). The school still works
+          long-term, but the recovery from the Y3 deficit drags 2–3 years longer and total
+          NPV compresses materially.
+        </p>
+        <p style="font-size: 13px; color: var(--ink-3);" data-i18n="sc.s1.p2">
+          <strong>Why this probability:</strong> Demand-side risk is the single biggest
+          uncertainty. A new bilingual school competing for parents' attention against
+          incumbent brands has real launch risk in years 1–2, even with the tailwinds.
+        </p>
+        <div class="npv">
+          <span class="lab" data-i18n="sc.npvLab">35-yr NPV @ 8%</span>
+          <span class="val" id="sc1-npv">— B</span>
+        </div>
+      </div>
+
+      <div class="scenario base">
+        <span class="badge" data-i18n="sc.s2.badge">50% — base</span>
+        <h3 data-i18n="sc.s2.h">2 — Base case</h3>
+        <p style="font-size: 14px;" data-i18n="sc.s2.p1">
+          All assumptions as modeled, mirroring the source Excel: 15/20/20 M VND tuition (held
+          flat), 65% op-cost ratio, 50 B Y0 + 200 B Y3 CapEx, 1,020 students by Y5, growth to
+          2,000 cap by Y10.
+        </p>
+        <p style="font-size: 13px; color: var(--ink-3);" data-i18n="sc.s2.p2">
+          <strong>Why this probability:</strong> The published demand and policy backdrop is
+          firm. The execution is concentrated in the Y3 build. If that lands and enrollment
+          tracks plan in Y1–Y2, base case is the modal outcome.
+        </p>
+        <div class="npv">
+          <span class="lab" data-i18n="sc.npvLab">35-yr NPV @ 8%</span>
+          <span class="val" id="sc2-npv">814 B</span>
+        </div>
+      </div>
+
+      <div class="scenario">
+        <span class="badge" data-i18n="sc.s3.badge">20% probability</span>
+        <h3 data-i18n="sc.s3.h">3 — CapEx overrun + tuition compression</h3>
+        <p style="font-size: 14px;" data-i18n="sc.s3.p1">
+          Y3 CapEx runs 30% over (260 B); realized tuition is 90% of plan (competitive
+          pressure or discounting in early cohorts). Combined effect deepens the trough by
+          ~75 B and pushes payback 1–1.5 years out.
+        </p>
+        <p style="font-size: 13px; color: var(--ink-3);" data-i18n="sc.s3.p2">
+          <strong>Why this probability:</strong> CapEx overruns on Vietnamese
+          construction projects are common; tuition compression is plausible if a competing
+          school launches in the same catchment. Both at once is less common than each
+          individually.
+        </p>
+        <div class="npv">
+          <span class="lab" data-i18n="sc.npvLab">35-yr NPV @ 8%</span>
+          <span class="val" id="sc3-npv">— B</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pw-npv">
+      <span class="lab" data-i18n="sc.pwLab">Probability-weighted 35-yr NPV @ 8%</span>
+      <span class="val" id="pw-npv-val">— B VND</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §7 SENSITIVITY ====================== -->
+<section id="sensitivity">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="sens.eyebrow">§7 — Sensitivity</div>
+    <h2 data-i18n="sens.h2">What moves the needle.</h2>
+    <p class="lede" data-i18n="sens.lede">
+      NPV impact of ±20% changes to each major assumption, holding all others at base case.
+      Sorted by magnitude. The chart confirms the expected ordering — operating-cost
+      structure dominates, followed by enrollment realization at Y5.
+    </p>
+
+    <div class="chart-box">
+      <div class="chart-canvas" style="height: 420px;"><canvas id="sensChart"></canvas></div>
+      <div class="chart-caption" data-i18n="sens.chartcap">
+        Tornado chart: bar length = absolute change in 35-yr NPV from a ±20% shift in that
+        assumption. Computed against base case; effects do not compound across rows. The
+        operating-cost ratio is a target margin in this model — its sensitivity will be
+        understated until a bottom-up cost build replaces it (see §8).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §8 RISKS ====================== -->
+<section id="risks" style="background: var(--bg-soft);">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="risk.eyebrow">§8 — Risks &amp; Open Questions</div>
+    <h2 data-i18n="risk.h2">What this model does not capture.</h2>
+    <p class="lede" data-i18n="risk.lede">
+      An honest list of the things the cash-flow model under- or over-states. This section
+      isn't a hedge — it's the part of the analysis that determines whether the headline
+      numbers above can be trusted. Read it carefully.
+    </p>
+
+    <div class="risk-list">
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r1.h">Operating cost is a target margin, not a built-up stack</h3>
+          <p data-i18n="risk.r1.p">
+            The model assumes operating cost = 65% of revenue (the inverse of the 35% target
+            PBT margin). A bottom-up build — teacher headcount × salary by level, plus admin,
+            facilities, marketing, learning materials — would almost certainly show fixed costs
+            dominating in Y1–Y2 (when revenue is small but the school is fully staffed). The
+            §5 live model lets you stress the ratio, but the right fix is a real cost stack.
+            <strong>This is the single biggest analytical gap.</strong>
+          </p>
+        </div>
+      </div>
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r2.h">30 B VND equipment CapEx is missing from the source cash flow</h3>
+          <p data-i18n="risk.r2.p">
+            The project document references 30 B VND for equipment and learning materials,
+            funded by the investor group separately. The source cash-flow model does not
+            include this. The §5 live model has a toggle: switching it on deepens the Y0 hole
+            to −80 B and pushes payback out by ~3 months.<sup class="ref">5</sup>
+          </p>
+        </div>
+      </div>
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r3.h">Land rent between Tây Nam and Toàn Việt is zero — accounting reality, not economic reality</h3>
+          <p data-i18n="risk.r3.p">
+            The base case treats land rent between Tây Nam (facility owner) and Toàn Việt
+            (operator) as zero (intercompany). For an investor evaluating Toàn Việt standalone,
+            or for any future scenario where the two entities separate, market rent should be
+            assumed. The §5 live model has a 0–20 B/yr slider so you can see what happens.
+            At 10 B/yr market rent, NPV drops by ~110 B and payback shifts ~1 year later.
+          </p>
+        </div>
+      </div>
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r4.h">The source Excel applies 3% tuition inflation incorrectly — base case here matches the source</h3>
+          <p data-i18n="risk.r4.p">
+            The source spreadsheet applies a one-time +3% bump to Y2–Y5 revenue rather than
+            compounding year-over-year, and the 35-year cash flow line then ignores inflation
+            entirely (effective rate: 0% across 35 years). To stay faithful to the source's
+            published headline numbers, this page's base case also uses 0% effective inflation —
+            so the 814 B NPV / 35.0% IRR / Y5.86 payback all reconcile to the source Excel exactly.
+            The §5 live-model inflation slider lets you dial in true compound inflation. At 3%/yr
+            compounded across 35 years, NPV roughly +60% over the source figure.
+          </p>
+        </div>
+      </div>
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r5.h">The Y6+ enrollment ramp is doing significant work</h3>
+          <p data-i18n="risk.r5.p">
+            Annual cash flow at the 2,000-student cap is ~123 B VND — meaning Years 6 through
+            35 contribute the overwhelming majority of NPV. The base case fills the school
+            from 1,020 to 2,000 over Y6–Y10. If that ramp slows materially, the long-tail NPV
+            compresses. The §7 sensitivity captures a part of this; the §6 "slow ramp"
+            scenario captures another part.
+          </p>
+        </div>
+      </div>
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r6.h">Tuition benchmarking is asserted, not shown</h3>
+          <p data-i18n="risk.r6.p">
+            The 15/20/20 M VND tuition assumption is consistent with comparable bilingual
+            schools in central HCMC, per the source project document — but a comparable table
+            (named schools, current published tuition, programs) is not in this v1. It's on
+            the v2 list. If realized tuition lands meaningfully below assumption, the §6
+            scenario 3 captures the impact.
+          </p>
+        </div>
+      </div>
+      <div class="risk">
+        <div>
+          <h3 data-i18n="risk.r7.h">"Cash flow" in this model = revenue × 35% margin</h3>
+          <p data-i18n="risk.r7.p">
+            No working capital, no depreciation, no tax. The IRR and NPV are pre-tax, on a
+            target-margin construction. For a real cash payback profile in a real CFO sense,
+            the model needs depreciation (at minimum, a straight-line on the 250 B CapEx),
+            a working-capital schedule for tuition collection cycles, and a corporate tax
+            line. None of these change the 35-year direction, but they sharpen the early years.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== §9 SOURCES ====================== -->
+<section id="sources">
+  <div class="container">
+    <div class="section-eyebrow" data-i18n="src.eyebrow">§9 — Sources</div>
+    <h2 data-i18n="src.h2">References.</h2>
+    <p class="lede" data-i18n="src.lede">
+      Every demand-side and structural claim in this page traces to one of the references
+      below. Internal financial figures (NPV, IRR, payback, cash flow shape) are computed in
+      this page from the source Excel model with the corrections noted in §8.
+    </p>
+
+    <ol class="sources-list">
+      <li data-i18n="src.r1">
+        HCMC Department of Education and Training (Sở GD&amp;ĐT TP HCM), 2025–26 enrollment
+        figures. 2,528,789 students; +39,632 vs prior year; +42,978 in lower-secondary;
+        1,287 new classrooms planned. <span class="ref">Tuổi Trẻ Online &amp; Người Lao Động, Aug–Sep 2025.</span>
+      </li>
+      <li data-i18n="src.r2">
+        HCMC Department of Education and Training, 2024–25 general-education report:
+        4,865 teacher recruitment shortfall, ~3,500 schools, ~110,000 teachers in HCMC;
+        acknowledgment that the network "still does not meet learning demand."
+        <span class="ref">Government source via Tuổi Trẻ Online and Giáo Dục TPHCM.</span>
+      </li>
+      <li data-i18n="src.r3">
+        Government of Vietnam, <strong>Quyết định 2371/QĐ-TTg</strong> dated 27 October 2025:
+        Approval of the program "Bringing English into being the second language in schools
+        for the 2025–2035 period, with vision to 2045." <span class="ref">Cited in source project document, Section 1.</span>
+      </li>
+      <li data-i18n="src.r4">
+        National Assembly Standing Committee, <strong>Nghị quyết 1685/NQ-UBTVQH15</strong>:
+        Reorganization of administrative units in HCMC, including the new ward boundaries
+        relevant to this catchment area. <span class="ref">Cited in source project document, Section 1.</span>
+      </li>
+      <li data-i18n="src.r5">
+        Source project document, "DỰ ÁN ĐẦU TƯ TRƯỜNG [tên trường] — tại Đường Thành Thái,
+        Phường Diên Hồng, TP HCM" — Sections 1–9, including legal basis, capacity plans, floor
+        allocation, staffing plans, and operating-structure description. Equipment CapEx
+        (30 B VND) referenced in Section 6, para 185. US partner-school chương trình tích hợp
+        intent referenced in Section 3 and Section 8. Operating structure (Công ty Tây Nam
+        as facility owner ↔ Công ty Toàn Việt / Toàn Việt-brand operator) referenced in
+        Section 9 ("ĐỀ XUẤT MÔ HÌNH HOẠT ĐỘNG VÀ MÔ HÌNH TÀI CHÍNH CƠ BẢN").
+        <span class="ref">Internal, dated Tháng .. năm 2026.</span>
+      </li>
+      <li data-i18n="src.r6">
+        Source cash-flow model, Excel workbook: Dashboard, Assumptions, Model_5Y, CashFlow_35Y
+        sheets. All headline figures (814 B NPV, 35.0% IRR, −176 B deepest cumulative, Y5.86
+        payback) recomputed in this page from first principles per the source assumptions,
+        with corrections noted in §8 (compounding inflation; payback formula).
+        <span class="ref">Internal Excel workbook.</span>
+      </li>
+      <li data-i18n="src.r7">
+        Regulatory grounding (referenced in source project document, Section 1):
+        Luật Giáo dục 43/2019/QH14; Luật Đầu tư 61/2020/QH14; Luật Doanh nghiệp 59/2020/QH14;
+        Nghị định 46/2017/NĐ-CP; <strong>Thông tư 32/2020/TT-BGDĐT</strong> (general-education
+        school regulations); <strong>Thông tư 13/2020/TT-BGDĐT</strong> (facility standards);
+        TCVN 8793:2011 / TCVN 8794:2011 (primary / secondary school design standards).
+      </li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div data-i18n="footer.line1">Toàn Việt × Tây Nam · K-12 Bilingual School at Đường Thành Thái, Phường Diên Hồng, TP HCM · Internal v1 · May 2026</div>
+  <div style="margin-top: 6px;" data-i18n="footer.line2">All currency values in tỷ VND (B VND) unless noted. Model recomputes client-side.</div>
+</footer>
+
+<script>
+// =========================================================================
+// PASSWORD GATE — soft client-side block; not security-grade.
+// Plain comparison: the password is shipped to the client either way, so
+// hashing adds no practical security and only introduces failure modes.
+// =========================================================================
+(function() {
+  // Lightly obfuscated: base64 of the access key.
+  // Decode at runtime so casual View-Source doesn't reveal the key in plain.
+  const KEY_B64 = 'cFhrTklCMlpKQjM=';
+  const KEY = atob(KEY_B64);
+  const STORAGE_KEY = 'ip1_unlocked_v2';
+
+  const gate = document.getElementById('gate');
+  const form = document.getElementById('gate-form');
+  const input = document.getElementById('gate-input');
+  const err = document.getElementById('gate-error');
+
+  console.log('[gate] script loaded');
+
+  try {
+    if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+      gate.classList.add('hidden');
+      return;
+    }
+  } catch (e) { /* sessionStorage may be blocked on file:// in some browsers */ }
+
+  document.body.style.overflow = 'hidden';
+
+  // Tiny localized strings for gate dynamic messages (gate runs before I18N is defined)
+  function gateLang() {
+    try {
+      const saved = localStorage.getItem('ip1_lang');
+      if (saved === 'vi' || saved === 'en') return saved;
+    } catch (e) {}
+    return (navigator.language || '').toLowerCase().startsWith('vi') ? 'vi' : 'en';
+  }
+  const GATE_MSG = {
+    invalid: { en: 'Invalid key. Try again.', vi: 'Mã không hợp lệ. Vui lòng thử lại.' },
+    empty:   { en: 'Enter the access key.',   vi: 'Vui lòng nhập mã truy cập.' },
+  };
+  function gateMsg(k) { return GATE_MSG[k][gateLang()] || GATE_MSG[k].en; }
+
+  function tryUnlock() {
+    err.textContent = '';
+    const raw = input.value || '';
+    const v = raw.replace(/\s+/g, '');
+    console.log('[gate] attempt — len=' + v.length);
+    if (!v) { err.textContent = gateMsg('empty'); return; }
+    if (v === KEY) {
+      console.log('[gate] match — unlocking');
+      try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+      gate.classList.add('hidden');
+      document.body.style.overflow = '';
+    } else {
+      console.log('[gate] mismatch');
+      err.textContent = gateMsg('invalid');
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); tryUnlock(); });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
+  console.log('[gate] handlers attached');
+})();
+
+// =========================================================================
+// SMOOTH SCROLL — explicit handler for nav anchors (sticky-nav offset aware)
+// =========================================================================
+document.querySelectorAll('.topnav a[href^="#"]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    const id = link.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    const navH = document.querySelector('.topnav').offsetHeight;
+    const top = target.getBoundingClientRect().top + window.pageYOffset - navH - 8;
+    window.scrollTo({ top, behavior: 'smooth' });
+    history.replaceState(null, '', '#' + id);
+  });
+});
+
+// =========================================================================
+// MODEL
+// =========================================================================
+// Base case mirrors the source Excel exactly so headline numbers match the source doc.
+// The inflation slider lets users dial in true compound inflation as a correction.
+const BASE = {
+  tuP: 15, tuS: 20, tuH: 20,           // M VND/student/month
+  months: 10,
+  opRatio: 0.65,                        // operating cost / revenue
+  capexY0: 50, capexY3: 200,            // B VND
+  equipmentCapex: 0,                    // toggle: 0 or 30
+  inflation: 0,                         // 0% in base = matches source's effective inflation
+  discount: 0.08,
+  rampFactor: 1.0,                      // multiplier on Y5 enrollment
+  rent: 0,                              // B VND/yr
+};
+
+// 5-year ramp (from project document Section 8 / Excel Assumptions)
+const RAMP = {
+  primary:   [0, 150, 270, 390, 450, 570],
+  secondary: [0,  60, 150, 240, 270, 330],
+  hs:        [0,   0,   0,   0,  90, 120],
+};
+// Capacity caps at maturity (project document Tables 8-10)
+const CAPS = { primary: 990, secondary: 540, hs: 470 };
+
+function compute(p) {
+  const YEARS = 36;
+  const prim = RAMP.primary.slice();
+  const sec  = RAMP.secondary.slice();
+  const hs   = RAMP.hs.slice();
+
+  // Apply Y5 ramp factor proportionally to Y1-Y5
+  if (p.rampFactor !== 1.0) {
+    for (let i = 1; i <= 5; i++) {
+      prim[i] = Math.round(prim[i] * p.rampFactor);
+      sec[i]  = Math.round(sec[i]  * p.rampFactor);
+      hs[i]   = Math.round(hs[i]   * p.rampFactor);
+    }
+  }
+
+  // Y6+: replicate the source Excel's hand-tuned ramp exactly.
+  // Y6/Y7 = previous × 1.25; Y8-Y10 hand-coded jumps that converge at 2,000; Y11+ flat.
+  prim.push(Math.round(prim[5] * 1.25));      // Y6
+  prim.push(Math.round(prim[6] * 1.25));      // Y7
+  while (prim.length < YEARS) prim.push(CAPS.primary);  // Y8+ flat at 990
+  sec.push(Math.round(sec[5] * 1.25));        // Y6
+  sec.push(Math.round(sec[6] * 1.25));        // Y7
+  while (sec.length < YEARS) sec.push(CAPS.secondary);  // Y8+ flat at 540
+  hs.push(Math.round(hs[5] * 1.25));          // Y6
+  hs.push(Math.round(hs[6] * 1.25));          // Y7
+  hs.push(260);                               // Y8 hand-coded
+  hs.push(360);                               // Y9 hand-coded
+  while (hs.length < YEARS) hs.push(CAPS.hs); // Y10+ flat at 470
+
+  // Revenue with TRUE compound inflation (fixes source bug)
+  // Tuition is in M VND/student/month; convert to B VND/yr
+  // rev(year) = students × tuition × months × (1+infl)^(year-1)  [Y1 baseline]
+  const rev = [];
+  for (let y = 0; y < YEARS; y++) {
+    const inflM = y >= 1 ? Math.pow(1 + p.inflation, y - 1) : 0;
+    const r = (prim[y] * p.tuP + sec[y] * p.tuS + hs[y] * p.tuH) * p.months * inflM / 1000;
+    rev.push(r);
+  }
+
+  // CapEx
+  const capex = new Array(YEARS).fill(0);
+  capex[0] = -p.capexY0 - p.equipmentCapex;
+  capex[3] = -p.capexY3;
+
+  // Cash flow = revenue × (1 - opRatio) - rent + capex
+  // Rent applies starting Y1
+  const fcf = [], cum = [];
+  let c = 0;
+  for (let y = 0; y < YEARS; y++) {
+    const op = rev[y] * p.opRatio;
+    const rent = (y === 0) ? 0 : p.rent;
+    const f = rev[y] - op - rent + capex[y];
+    fcf.push(f);
+    c += f;
+    cum.push(c);
+  }
+
+  // NPV
+  let npv = 0;
+  for (let y = 0; y < YEARS; y++) {
+    npv += fcf[y] / Math.pow(1 + p.discount, y);
+  }
+
+  // IRR via bisection
+  function npvAt(r) {
+    let v = 0;
+    for (let y = 0; y < YEARS; y++) v += fcf[y] / Math.pow(1+r, y);
+    return v;
+  }
+  let lo = -0.5, hi = 2.0;
+  if (npvAt(lo) * npvAt(hi) > 0) {
+    // No sign change — IRR undefined or > hi
+    var irr = npv > 0 ? hi : lo;
+  } else {
+    for (let i = 0; i < 80; i++) {
+      const mid = (lo + hi) / 2;
+      if (npvAt(mid) > 0) lo = mid; else hi = mid;
+    }
+    var irr = (lo + hi) / 2;
+  }
+
+  // Payback
+  let payback = null, prev = 0;
+  for (let y = 0; y < YEARS; y++) {
+    if (cum[y] >= 0 && prev < 0 && payback === null) {
+      const frac = -prev / fcf[y];
+      payback = (y - 1) + frac;
+    }
+    prev = cum[y];
+  }
+
+  // Deepest
+  let deepest = { year: 0, value: 0 };
+  cum.forEach((v, y) => { if (v < deepest.value) deepest = { year: y, value: v }; });
+
+  return {
+    students: { primary: prim, secondary: sec, hs },
+    rev, capex, fcf, cum,
+    npv, irr, payback, deepest,
+    cum5: cum[5],
+  };
+}
+
+// Compute base reference
+const BASE_RESULT = compute(BASE);
+
+// =========================================================================
+// FORMATTING
+// =========================================================================
+function fmtB(v, dp = 0) {
+  if (v == null || isNaN(v)) return '—';
+  const sign = v < 0 ? '−' : '';
+  const a = Math.abs(v);
+  return sign + a.toFixed(dp);
+}
+function fmtBs(v, dp = 0) { return fmtB(v, dp) + ' B'; }
+function fmtPct(v, dp = 1) {
+  if (v == null || isNaN(v)) return '—';
+  return (v * 100).toFixed(dp) + '%';
+}
+function fmtPay(v) {
+  if (v == null || isNaN(v)) return '—';
+  return 'Y' + v.toFixed(2);
+}
+function fmtDelta(curr, base, fmt, suffix = '') {
+  const d = curr - base;
+  if (Math.abs(d) < 0.01) return 'base case';
+  const sign = d > 0 ? '+' : '−';
+  return sign + fmt(Math.abs(d)) + suffix + ' vs base';
+}
+
+// =========================================================================
+// CHARTS
+// =========================================================================
+const colors = {
+  blueDeep: '#1e3a8a',
+  blue: '#1d4ed8',
+  blueLight: '#3b82f6',
+  blueFill: 'rgba(59, 130, 246, 0.10)',
+  blueBar: '#2563eb',
+  blue3: '#93c5fd',
+  blue1: '#dbeafe',
+  red: '#dc2626',
+  redFill: 'rgba(220, 38, 38, 0.08)',
+  ink: '#0f172a',
+  ink3: '#64748b',
+  line: '#e2e8f0',
+};
+
+const yearLabels = Array.from({length: 36}, (_, i) => 'Y' + i);
+const labels5 = ['Y1','Y2','Y3','Y4','Y5'];
+
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+Chart.defaults.color = colors.ink3;
+Chart.defaults.font.size = 12;
+
+// --- Ramp chart (stacked bar) ---
+const rampCtx = document.getElementById('rampChart').getContext('2d');
+const rampChart = new Chart(rampCtx, {
+  type: 'bar',
+  data: {
+    labels: labels5,
+    datasets: [
+      { label: 'Primary', data: RAMP.primary.slice(1, 6), backgroundColor: colors.blueDeep, borderRadius: 2, },
+      { label: 'THCS',    data: RAMP.secondary.slice(1, 6), backgroundColor: colors.blue, borderRadius: 2, },
+      { label: 'THPT',    data: RAMP.hs.slice(1, 6), backgroundColor: colors.blueLight, borderRadius: 2, },
+    ],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } },
+      tooltip: { callbacks: { footer: (items) => { const t = items.reduce((a, i) => a + i.parsed.y, 0); return 'Total: ' + t.toLocaleString(); } } },
+    },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: colors.line }, ticks: { stepSize: 250 } },
+    },
+  },
+});
+
+// --- Cumulative cash flow (centerpiece) ---
+function cfData(result) {
+  return {
+    labels: yearLabels,
+    datasets: [
+      {
+        label: 'Cumulative cash flow',
+        data: result.cum,
+        borderColor: colors.blueDeep,
+        backgroundColor: (ctx) => {
+          const chart = ctx.chart;
+          const { ctx: c, chartArea } = chart;
+          if (!chartArea) return 'transparent';
+          const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          grad.addColorStop(0, 'rgba(37, 99, 235, 0.18)');
+          grad.addColorStop(0.5, 'rgba(37, 99, 235, 0.05)');
+          grad.addColorStop(0.5, 'rgba(220, 38, 38, 0.05)');
+          grad.addColorStop(1, 'rgba(220, 38, 38, 0.18)');
+          return grad;
+        },
+        fill: true,
+        tension: 0.25,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: colors.blueDeep,
+      },
+    ],
+  };
+}
+function cfOptions(result) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          title: (items) => 'Year ' + items[0].dataIndex,
+          label: (ctx) => 'Cumulative: ' + fmtBs(ctx.parsed.y, 1) + ' VND',
+          afterLabel: (ctx) => {
+            const y = ctx.dataIndex;
+            return [
+              'Annual FCF: ' + fmtBs(result.fcf[y], 1) + ' VND',
+              'Students: ' + (result.students.primary[y] + result.students.secondary[y] + result.students.hs[y]).toLocaleString(),
+            ];
+          },
+        },
+      },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
+      y: {
+        grid: { color: colors.line },
+        ticks: { callback: (v) => fmtB(v) + ' B' },
+        title: { display: true, text: 'Cumulative cash flow (B VND)', color: colors.ink3, font: { size: 11 } },
+      },
+    },
+  };
+}
+const zeroLinePlugin = {
+  id: 'zeroLine',
+  afterDatasetsDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    if (!scales.y) return;
+    const y0 = scales.y.getPixelForValue(0);
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    ctx.moveTo(chartArea.left, y0);
+    ctx.lineTo(chartArea.right, y0);
+    ctx.stroke();
+    ctx.restore();
+  },
+};
+
+const cfCtx = document.getElementById('cashflowChart').getContext('2d');
+const cfChart = new Chart(cfCtx, { type: 'line', data: cfData(BASE_RESULT), options: cfOptions(BASE_RESULT), plugins: [zeroLinePlugin] });
+
+const liveCtx = document.getElementById('liveChart').getContext('2d');
+const liveChart = new Chart(liveCtx, { type: 'line', data: cfData(BASE_RESULT), options: cfOptions(BASE_RESULT), plugins: [zeroLinePlugin] });
+
+// --- Sensitivity tornado ---
+function sensitivity() {
+  const base = BASE_RESULT.npv;
+  const tests = [
+    { label: 'Operating cost ratio',  key: 'opRatio',     up: 0.78, down: 0.52 },
+    { label: 'Y5 enrollment factor',  key: 'rampFactor',  up: 1.20, down: 0.80 },
+    { label: 'Year-3 CapEx',           key: 'capexY3',     up: 240,  down: 160 },
+    { label: 'Tuition — primary',      key: 'tuP',         up: 18,   down: 12 },
+    { label: 'Tuition — secondary',    key: 'tuS',         up: 24,   down: 16 },
+    { label: 'Annual inflation',       key: 'inflation',   up: 0.036,down: 0.024 },
+    { label: 'Discount rate',          key: 'discount',    up: 0.096,down: 0.064 },
+    { label: 'Year-0 CapEx',           key: 'capexY0',     up: 60,   down: 40 },
+  ];
+  const rows = tests.map(t => {
+    const upP = { ...BASE, [t.key]: t.up };
+    const downP = { ...BASE, [t.key]: t.down };
+    const upN = compute(upP).npv;
+    const downN = compute(downP).npv;
+    return { label: t.label, up: upN - base, down: downN - base };
+  });
+  rows.sort((a, b) => Math.max(Math.abs(b.up), Math.abs(b.down)) - Math.max(Math.abs(a.up), Math.abs(a.down)));
+  return rows;
+}
+const sensRows = sensitivity();
+const sensCtx = document.getElementById('sensChart').getContext('2d');
+new Chart(sensCtx, {
+  type: 'bar',
+  data: {
+    labels: sensRows.map(r => r.label),
+    datasets: [
+      { label: '−20%', data: sensRows.map(r => r.down), backgroundColor: colors.red, borderRadius: 2 },
+      { label: '+20%', data: sensRows.map(r => r.up), backgroundColor: colors.blueDeep, borderRadius: 2 },
+    ],
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } },
+      tooltip: { callbacks: { label: (ctx) => 'Δ NPV: ' + fmtBs(ctx.parsed.x, 0) + ' VND' } },
+    },
+    scales: {
+      x: { grid: { color: colors.line }, ticks: { callback: (v) => fmtB(v) + ' B' }, title: { display: true, text: 'Δ 35-yr NPV (B VND) from base case', color: colors.ink3, font: { size: 11 } } },
+      y: { grid: { display: false } },
+    },
+  },
+});
+
+// =========================================================================
+// SCENARIOS
+// =========================================================================
+function setupScenarios() {
+  const sc1 = compute({ ...BASE, rampFactor: 0.70 });
+  const sc2 = BASE_RESULT;
+  const sc3 = compute({ ...BASE, capexY3: 260, tuP: 13.5, tuS: 18, tuH: 18 });
+
+  document.getElementById('sc1-npv').textContent = fmtBs(sc1.npv) + ' VND';
+  document.getElementById('sc2-npv').textContent = fmtBs(sc2.npv) + ' VND';
+  document.getElementById('sc3-npv').textContent = fmtBs(sc3.npv) + ' VND';
+
+  const pw = 0.30 * sc1.npv + 0.50 * sc2.npv + 0.20 * sc3.npv;
+  document.getElementById('pw-npv-val').textContent = fmtBs(pw) + ' VND';
+}
+setupScenarios();
+
+// =========================================================================
+// HERO STATS (initial render uses base; never updates)
+// =========================================================================
+document.getElementById('hero-cum5').innerHTML = fmtB(BASE_RESULT.cum5) + '<span class="stat-unit"> B VND</span>';
+document.getElementById('hero-payback').textContent = fmtPay(BASE_RESULT.payback);
+document.getElementById('hero-npv').innerHTML = fmtB(BASE_RESULT.npv) + '<span class="stat-unit"> B VND</span>';
+document.getElementById('hero-irr').textContent = fmtPct(BASE_RESULT.irr);
+
+// =========================================================================
+// LIVE MODEL WIRING
+// =========================================================================
+const sliders = [
+  { id: 's-tuP',  out: 'v-tuP',  prop: 'tuP',         fmt: v => v.toFixed(1) },
+  { id: 's-tuS',  out: 'v-tuS',  prop: 'tuS',         fmt: v => v.toFixed(1) },
+  { id: 's-tuH',  out: 'v-tuH',  prop: 'tuH',         fmt: v => v.toFixed(1) },
+  { id: 's-op',   out: 'v-op',   prop: 'opRatio',     fmt: v => Math.round(v * 100), parse: v => v / 100 },
+  { id: 's-c0',   out: 'v-c0',   prop: 'capexY0',     fmt: v => v },
+  { id: 's-c3',   out: 'v-c3',   prop: 'capexY3',     fmt: v => v },
+  { id: 's-inf',  out: 'v-inf',  prop: 'inflation',   fmt: v => (v * 100).toFixed(2), parse: v => v / 100 },
+  { id: 's-disc', out: 'v-disc', prop: 'discount',    fmt: v => (v * 100).toFixed(2), parse: v => v / 100 },
+  { id: 's-ramp', out: 'v-ramp', prop: 'rampFactor',  fmt: v => v.toFixed(2) },
+  { id: 's-rent', out: 'v-rent', prop: 'rent',        fmt: v => v.toFixed(1) },
+];
+const checkboxEq = document.getElementById('s-eq');
+
+const labels = {
+  tuP: 'Primary tuition',
+  tuS: 'Secondary tuition',
+  tuH: 'High school tuition',
+  opRatio: 'Operating cost ratio',
+  capexY0: 'Y0 CapEx',
+  capexY3: 'Y3 CapEx',
+  inflation: 'Inflation',
+  discount: 'Discount rate',
+  rampFactor: 'Y5 enrollment factor',
+  rent: 'Market rent',
+  equipmentCapex: 'Equipment CapEx',
+};
+const labelFmt = {
+  tuP: v => v.toFixed(1) + ' M',
+  tuS: v => v.toFixed(1) + ' M',
+  tuH: v => v.toFixed(1) + ' M',
+  opRatio: v => (v * 100).toFixed(0) + '%',
+  capexY0: v => v + ' B',
+  capexY3: v => v + ' B',
+  inflation: v => (v * 100).toFixed(2) + '%',
+  discount: v => (v * 100).toFixed(2) + '%',
+  rampFactor: v => v.toFixed(2) + '×',
+  rent: v => v.toFixed(1) + ' B',
+  equipmentCapex: v => v + ' B',
+};
+
+function readState() {
+  const s = { ...BASE };
+  sliders.forEach(({ id, prop, parse }) => {
+    const el = document.getElementById(id);
+    let raw = parseFloat(el.value);
+    if (parse) raw = parse(raw * 100); // re-parse percentages from displayed unit
+    // Actually re-do this cleanly:
+  });
+  // Cleaner version:
+  s.tuP        = parseFloat(document.getElementById('s-tuP').value);
+  s.tuS        = parseFloat(document.getElementById('s-tuS').value);
+  s.tuH        = parseFloat(document.getElementById('s-tuH').value);
+  s.opRatio    = parseFloat(document.getElementById('s-op').value)   / 100;
+  s.capexY0    = parseFloat(document.getElementById('s-c0').value);
+  s.capexY3    = parseFloat(document.getElementById('s-c3').value);
+  s.inflation  = parseFloat(document.getElementById('s-inf').value)  / 100;
+  s.discount   = parseFloat(document.getElementById('s-disc').value) / 100;
+  s.rampFactor = parseFloat(document.getElementById('s-ramp').value);
+  s.rent       = parseFloat(document.getElementById('s-rent').value);
+  s.equipmentCapex = checkboxEq.checked ? 30 : 0;
+  return s;
+}
+
+function updateSliderLabels(s) {
+  document.getElementById('v-tuP').textContent  = s.tuP.toFixed(1);
+  document.getElementById('v-tuS').textContent  = s.tuS.toFixed(1);
+  document.getElementById('v-tuH').textContent  = s.tuH.toFixed(1);
+  document.getElementById('v-op').textContent   = (s.opRatio * 100).toFixed(0);
+  document.getElementById('v-c0').textContent   = s.capexY0;
+  document.getElementById('v-c3').textContent   = s.capexY3;
+  document.getElementById('v-inf').textContent  = (s.inflation * 100).toFixed(2);
+  document.getElementById('v-disc').textContent = (s.discount * 100).toFixed(2);
+  document.getElementById('v-ramp').textContent = s.rampFactor.toFixed(2);
+  document.getElementById('v-rent').textContent = s.rent.toFixed(1);
+}
+
+function updateOutputs(result) {
+  // Numbers
+  document.getElementById('o-npv').textContent     = fmtBs(result.npv);
+  document.getElementById('o-irr').textContent     = fmtPct(result.irr);
+  document.getElementById('o-payback').textContent = fmtPay(result.payback);
+  document.getElementById('o-deepest').textContent = fmtBs(result.deepest.value);
+
+  // Color the NPV/IRR
+  const npvEl = document.getElementById('o-npv');
+  const irrEl = document.getElementById('o-irr');
+  npvEl.className = 'v ' + (result.npv >= 0 ? 'positive' : 'deficit');
+  irrEl.className = 'v ' + (result.irr >= BASE.discount ? 'positive' : 'deficit');
+
+  // Deltas
+  function setDelta(id, curr, base, fmt, suffix = '') {
+    const el = document.getElementById(id);
+    const d = curr - base;
+    if (Math.abs(d) < 0.01) {
+      el.textContent = 'base case';
+      el.className = 'delta';
+    } else {
+      const arrow = d > 0 ? '▲' : '▼';
+      el.textContent = arrow + ' ' + fmt(Math.abs(d)) + suffix;
+      el.className = 'delta ' + (d > 0 ? 'up' : 'down');
+    }
+  }
+  setDelta('d-npv',     result.npv,           BASE_RESULT.npv,           v => fmtBs(v));
+  setDelta('d-irr',     result.irr,           BASE_RESULT.irr,           v => fmtPct(v));
+  setDelta('d-payback', result.payback || 99, BASE_RESULT.payback,       v => v.toFixed(2) + ' yr');
+  setDelta('d-deepest', result.deepest.value, BASE_RESULT.deepest.value, v => fmtBs(v));
+  document.getElementById('d-deepest').textContent += ' (Y' + result.deepest.year + ')';
+}
+
+function updateChart(result) {
+  liveChart.data = cfData(result);
+  liveChart.options = cfOptions(result);
+  liveChart.update('none');
+}
+
+function updateDiff(s) {
+  const changes = [];
+  for (const k of Object.keys(BASE)) {
+    const b = BASE[k], v = s[k];
+    if (Math.abs(b - v) > 0.0001) {
+      changes.push({ key: k, base: b, val: v });
+    }
+  }
+  const panel = document.getElementById('diff-panel');
+  const body = document.getElementById('diff-body');
+  if (changes.length === 0) {
+    panel.classList.add('empty');
+    body.textContent = 'No changes yet — sliders are at base case.';
+  } else {
+    panel.classList.remove('empty');
+    body.innerHTML = changes.map(c => {
+      const fmt = labelFmt[c.key] || (v => v);
+      const dir = c.val > c.base ? '↑' : '↓';
+      return '<div style="margin: 4px 0;"><strong>' + labels[c.key] + '</strong>: ' +
+             '<span class="mono">' + fmt(c.base) + '</span> → ' +
+             '<span class="mono" style="color: var(--blue-7); font-weight:600;">' + fmt(c.val) + '</span> ' +
+             '<span style="color: var(--ink-4);">' + dir + '</span></div>';
+    }).join('');
+  }
+}
+
+function recompute() {
+  const s = readState();
+  const r = compute(s);
+  updateSliderLabels(s);
+  updateOutputs(r);
+  updateChart(r);
+  updateDiff(s);
+}
+
+sliders.forEach(({ id }) => {
+  document.getElementById(id).addEventListener('input', recompute);
+});
+checkboxEq.addEventListener('change', recompute);
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('s-tuP').value  = BASE.tuP;
+  document.getElementById('s-tuS').value  = BASE.tuS;
+  document.getElementById('s-tuH').value  = BASE.tuH;
+  document.getElementById('s-op').value   = BASE.opRatio * 100;
+  document.getElementById('s-c0').value   = BASE.capexY0;
+  document.getElementById('s-c3').value   = BASE.capexY3;
+  document.getElementById('s-inf').value  = BASE.inflation * 100;
+  document.getElementById('s-disc').value = BASE.discount * 100;
+  document.getElementById('s-ramp').value = BASE.rampFactor;
+  document.getElementById('s-rent').value = BASE.rent;
+  checkboxEq.checked = false;
+  recompute();
+});
+
+// =========================================================================
+// I18N — Vietnamese translation
+// Hand-written using the source project document's vocabulary
+// (trường liên cấp song ngữ, học phí, Sở GD&ĐT, tỷ VND, etc.) — not
+// machine-translated.
+// =========================================================================
+const I18N = {
+  // Topnav
+  'topnav.version': { en: 'v1 · May 2026', vi: 'Phiên bản 1 · Tháng 5, 2026' },
+  'nav.market':       { en: 'Market',      vi: 'Thị trường' },
+  'nav.school':       { en: 'School',      vi: 'Nhà trường' },
+  'nav.ramp':         { en: 'Ramp',        vi: 'Lộ trình' },
+  'nav.cashflow':     { en: 'Cash flow',   vi: 'Dòng tiền' },
+  'nav.model':        { en: 'Model',       vi: 'Mô hình' },
+  'nav.scenarios':    { en: 'Scenarios',   vi: 'Kịch bản' },
+  'nav.sensitivity':  { en: 'Sensitivity', vi: 'Độ nhạy' },
+  'nav.risks':        { en: 'Risks',       vi: 'Rủi ro' },
+  'nav.sources':      { en: 'Sources',     vi: 'Tham khảo' },
+
+  // Units
+  'unit.bvnd':     { en: ' B VND',         vi: ' tỷ VND' },
+  'unit.bvnd2':    { en: 'B VND',          vi: 'tỷ VND' },
+  'unit.bvndyr':   { en: 'B VND/yr',       vi: 'tỷ VND/năm' },
+  'unit.mvndmo':   { en: 'M VND/mo',       vi: 'triệu VND/tháng' },
+  'unit.students': { en: ' students',      vi: ' học sinh' },
+
+  // Gate
+  'gate.eyebrow': { en: 'Restricted · Investment Materials', vi: 'Hạn chế truy cập · Tài liệu đầu tư' },
+  'gate.h':       { en: 'Access required', vi: 'Yêu cầu mã truy cập' },
+  'gate.p':       { en: 'This page contains confidential investment analysis. Enter the access key you were provided to continue.',
+                    vi: 'Trang này chứa nội dung phân tích đầu tư bảo mật. Vui lòng nhập mã truy cập đã được cung cấp để tiếp tục.' },
+  'gate.placeholder': { en: 'Access key', vi: 'Mã truy cập' },
+  'gate.btn':         { en: 'Unlock',     vi: 'Mở khóa' },
+  'gate.foot':        { en: "If you don't have a key, contact the deal team.",
+                        vi: 'Nếu chưa có mã, vui lòng liên hệ với nhóm phát triển dự án.' },
+  'gate.invalid':     { en: 'Invalid key. Try again.', vi: 'Mã không hợp lệ. Vui lòng thử lại.' },
+  'gate.empty':       { en: 'Enter the access key.',   vi: 'Vui lòng nhập mã truy cập.' },
+
+  // Hero
+  'hero.eyebrow': { en: 'Toàn Việt × Tây Nam · K-12 Bilingual School · Investment Case · Đường Thành Thái, Phường Diên Hồng, TP HCM',
+                    vi: 'Toàn Việt × Tây Nam · Trường liên cấp song ngữ K-12 · Đề án đầu tư · Đường Thành Thái, Phường Diên Hồng, TP HCM' },
+  'hero.h1':      { en: 'A K-12 bilingual school on Đường Thành Thái, Phường Diên Hồng, TP HCM.',
+                    vi: 'Trường liên cấp song ngữ K-12 tại Đường Thành Thái, Phường Diên Hồng, TP HCM.' },
+  'hero.dek':     { en: '<b>35% pre-tax IRR</b> over 35 years — but it asks investors to fund a <b>176 B VND cumulative shortfall</b> before the math turns.',
+                    vi: '<b>IRR trước thuế 35%</b> trong 35 năm — nhưng yêu cầu nhà đầu tư cấp vốn cho khoản <b>thâm hụt lũy kế 176 tỷ VND</b> trước khi mô hình chuyển dương.' },
+  'hero.s1.l':    { en: 'Initial CapEx', vi: 'Vốn đầu tư ban đầu' },
+  'hero.s1.v':    { en: '50',            vi: '50' },
+  'hero.s1.f':    { en: 'Year 0 — facility renovation', vi: 'Năm 0 — Cải tạo cơ sở vật chất' },
+  'hero.s2.l':    { en: 'Expansion CapEx', vi: 'Vốn đầu tư mở rộng' },
+  'hero.s2.v':    { en: '200',             vi: '200' },
+  'hero.s2.f':    { en: 'Year 3 — capacity build-out', vi: 'Năm 3 — Xây dựng mở rộng quy mô' },
+  'hero.s3.l':    { en: 'Max Enrollment', vi: 'Quy mô tối đa' },
+  'hero.s3.v':    { en: '2,000',          vi: '2.000' },
+  'hero.s3.f':    { en: '~Year 10 — at capacity', vi: 'Khoảng năm 10 — đạt công suất tối đa' },
+  'hero.s4.l':    { en: '5-yr cumulative', vi: 'Dòng tiền lũy kế 5 năm' },
+  'hero.s4.f':    { en: 'Through end of Year 5', vi: 'Đến cuối năm 5' },
+  'hero.s5.l':    { en: 'Cash Payback', vi: 'Thời gian hoàn vốn' },
+  'hero.s5.f':    { en: 'When cumulative crosses zero', vi: 'Khi dòng tiền lũy kế chuyển dương' },
+  'hero.s6.l':    { en: '35-yr NPV @ 8%', vi: 'NPV 35 năm @ 8%' },
+  'hero.s6.f':    { en: 'IRR ', vi: 'IRR ' },
+
+  // §1 Market
+  'market.eyebrow': { en: '§1 — Market Context', vi: '§1 — Bối cảnh thị trường' },
+  'market.h2':      { en: 'Demand exists. Supply is constrained. Policy points the right way.',
+                      vi: 'Nhu cầu có thật. Nguồn cung hạn chế. Chính sách thuận chiều.' },
+  'market.lede':    { en: "The case for a new private bilingual school at Đường Thành Thái, Phường Diên Hồng (the newly reorganized ward in former Quận 10, central HCMC) rests on three things the city's own published numbers establish: a school-age population still growing in absolute terms, a system-wide gap in teachers and classrooms, and a national-level decision to make English the second language of instruction in schools.",
+                      vi: 'Cơ sở đầu tư cho một trường tư thục song ngữ mới tại Đường Thành Thái, Phường Diên Hồng (đơn vị hành chính mới được tổ chức lại từ một phần Quận 10 cũ, khu vực trung tâm TP HCM) dựa trên ba yếu tố mà số liệu công bố của thành phố đã xác lập rõ: dân số học sinh vẫn đang tăng về tuyệt đối, hệ thống đang thiếu hụt giáo viên và phòng học diện rộng, và đã có quyết định cấp quốc gia đưa tiếng Anh trở thành ngôn ngữ thứ hai trong trường học.' },
+
+  'market.f1.v': { en: '2,528,789', vi: '2.528.789' },
+  'market.f1.l': { en: 'HCMC students (mầm non → phổ thông), 2025–26<sup class="ref">1</sup>',
+                   vi: 'Học sinh TP HCM (mầm non → phổ thông), năm học 2025–26<sup class="ref">1</sup>' },
+  'market.f1.s': { en: '+39,632 vs prior year', vi: 'Tăng 39.632 so với năm trước' },
+  'market.f2.v': { en: '+42,978', vi: '+42.978' },
+  'market.f2.l': { en: 'Net new lower-secondary (THCS) students this year<sup class="ref">1</sup>',
+                   vi: 'Số học sinh THCS tăng ròng trong năm<sup class="ref">1</sup>' },
+  'market.f2.s': { en: 'Largest single-level increase', vi: 'Mức tăng lớn nhất theo cấp học' },
+  'market.f3.v': { en: '1,287', vi: '1.287' },
+  'market.f3.l': { en: 'New classrooms HCMC plans to add this year<sup class="ref">1</sup>',
+                   vi: 'Số phòng học TP HCM dự kiến bổ sung trong năm<sup class="ref">1</sup>' },
+  'market.f3.s': { en: 'Acknowledged as still insufficient', vi: 'Vẫn được thừa nhận là chưa đủ' },
+  'market.f4.v': { en: '4,865', vi: '4.865' },
+  'market.f4.l': { en: "Teachers HCMC's Sở GD&amp;ĐT needs to recruit, 2025–26<sup class=\"ref\">2</sup>",
+                   vi: 'Số giáo viên Sở GD&amp;ĐT TP HCM cần tuyển, năm học 2025–26<sup class="ref">2</sup>' },
+  'market.f4.s': { en: 'Against ~110,000 currently', vi: 'So với khoảng 110.000 giáo viên hiện có' },
+  'market.f5.v': { en: '~3,500', vi: '~3.500' },
+  'market.f5.l': { en: 'Schools currently in HCMC<sup class="ref">2</sup>',
+                   vi: 'Số trường hiện có tại TP HCM<sup class="ref">2</sup>' },
+  'market.f5.s': { en: 'Across all levels and types', vi: 'Bao gồm tất cả các cấp học và loại hình' },
+  'market.f6.v': { en: 'QĐ 2371', vi: 'QĐ 2371' },
+  'market.f6.l': { en: 'National decision to make English the second language in schools, 2025–2035 with vision to 2045<sup class="ref">3</sup>',
+                   vi: 'Quyết định cấp quốc gia đưa tiếng Anh trở thành ngôn ngữ thứ hai trong trường học, giai đoạn 2025–2035, tầm nhìn đến năm 2045<sup class="ref">3</sup>' },
+  'market.f6.s': { en: 'Government decision, 2025', vi: 'Quyết định của Chính phủ, 2025' },
+
+  'market.acknowledge.h': { en: 'What the city itself acknowledges',
+                            vi: 'Chính TP HCM đã thừa nhận điều gì' },
+  'market.acknowledge.p1': { en: 'HCMC\'s own 2024–25 general-education report concedes the network of schools and classrooms <em>"still does not meet learning demand"</em>: class sizes remain elevated due to mechanical population growth, and some wards still lack a primary school entirely. The city is shifting toward what it calls a <em>"high-quality, advanced, internationally integrated"</em> private-school model to absorb pressure on the public system.<sup class="ref">2</sup>',
+                             vi: 'Báo cáo nhiệm vụ giáo dục phổ thông năm học 2024–25 của TP HCM thừa nhận mạng lưới trường, lớp <em>"vẫn chưa đáp ứng được yêu cầu học tập"</em>: sĩ số học sinh/lớp còn cao do dân số cơ học tăng, một số phường thậm chí chưa có trường tiểu học. Thành phố đang chuyển hướng sang mô hình trường tư thục <em>"chất lượng cao, tiên tiến, hội nhập quốc tế"</em> để giảm áp lực cho hệ thống công lập.<sup class="ref">2</sup>' },
+  'market.acknowledge.p2': { en: 'Two regulatory tailwinds compound the demand picture: the national QĐ 2371 program formalizes English as the second language of instruction in schools (2025–2035), and the local administrative reorganization under NQ 1685/NQ-UBTVQH15 created Phường Diên Hồng (merging former Phường 6, Phường 8, and part of Phường 14 of Quận 10), redrawing the catchment area for this site.<sup class="ref">3,4</sup>',
+                             vi: 'Hai yếu tố thuận chiều về mặt chính sách bổ trợ cho bức tranh nhu cầu: chương trình quốc gia theo QĐ 2371 chính thức hóa tiếng Anh trở thành ngôn ngữ thứ hai trong trường học (2025–2035), và việc sắp xếp lại đơn vị hành chính theo NQ 1685/NQ-UBTVQH15 đã hình thành Phường Diên Hồng (sáp nhập từ Phường 6, Phường 8 và một phần Phường 14 của Quận 10 cũ), vẽ lại địa bàn tuyển sinh cho địa điểm này.<sup class="ref">3,4</sup>' },
+
+  'market.bilingual.h': { en: 'Why "bilingual" specifically',
+                          vi: 'Vì sao là "song ngữ"' },
+  'market.bilingual.p1': { en: 'Two-thirds of HCMC parents in the income bands that can support 15–20 M VND/month tuition treat English-medium content as a base requirement, not a premium feature. A Bộ GD&amp;ĐT-curriculum school with bilingual subject delivery — and a planned chương trình tích hợp (integrated dual-diploma) pathway with a private K-12 partner school in the United States<sup class="ref">5</sup> — sits exactly where regulatory direction and parent demand intersect.',
+                           vi: 'Khoảng hai phần ba phụ huynh TP HCM trong nhóm thu nhập có khả năng chi trả học phí 15–20 triệu VND/tháng coi nội dung giảng dạy bằng tiếng Anh là yêu cầu cơ bản, không phải đặc quyền cao cấp. Một trường theo chương trình của Bộ GD&amp;ĐT có giảng dạy song ngữ một số môn — và chương trình tích hợp (bằng kép) phối hợp với một trường tư thục liên cấp đối tác tại Hoa Kỳ<sup class="ref">5</sup> — đặt đúng vào điểm giao nhau giữa định hướng chính sách và nhu cầu phụ huynh.' },
+  'market.bilingual.p2': { en: 'The case <em>does not</em> rest on being the only or best bilingual school in the area. It rests on the gap between the addressable enrollment in this catchment and the number of qualified seats. The §3 ramp models a school that captures ~1,000 of those seats by Year 5, growing to a 2,000-student cap thereafter — a small fraction of the THCS-level annual increase alone.',
+                           vi: 'Cơ sở đầu tư <em>không</em> dựa trên việc trở thành trường song ngữ duy nhất hay tốt nhất trong khu vực, mà dựa trên khoảng cách giữa tổng nhu cầu trong địa bàn tuyển sinh và số chỗ học đạt chuẩn hiện có. Lộ trình tại §3 mô hình hóa một trường thu hút khoảng 1.000 chỗ học vào năm thứ 5, tăng lên công suất tối đa 2.000 học sinh sau đó — chỉ chiếm một phần nhỏ so với mức tăng học sinh cấp THCS riêng trong năm.' },
+
+  // §2 School
+  'school.eyebrow': { en: '§2 — The School', vi: '§2 — Về nhà trường' },
+  'school.h2':      { en: "What's being built.", vi: 'Sẽ xây dựng những gì.' },
+  'school.lede':    { en: 'A multi-level facility on Đường Thành Thái, Phường Diên Hồng, TP HCM — an existing structure being renovated and expanded by Công ty Tây Nam (the facility owner), operated under the Toàn Việt brand. Year 0 is the renovation of the existing building; Year 3 is an expansion build to support the full 2,000-student capacity.',
+                      vi: 'Một cơ sở liên cấp tại Đường Thành Thái, Phường Diên Hồng, TP HCM — công trình hiện hữu đang được cải tạo và mở rộng bởi Công ty Tây Nam (chủ sở hữu cơ sở), vận hành dưới thương hiệu Toàn Việt. Năm 0 là cải tạo tòa nhà hiện có; năm 3 là xây dựng mở rộng để phục vụ công suất tối đa 2.000 học sinh.' },
+
+  'school.struct.h': { en: 'Operating structure — Tây Nam ↔ Toàn Việt', vi: 'Mô hình hoạt động — Tây Nam ↔ Toàn Việt' },
+  'school.struct.p1': { en: 'Two-entity setup. <strong>Công ty Tây Nam</strong> holds the property and is responsible for the physical asset and long-term lease (35 years). <strong>Công ty Toàn Việt</strong> (or a Toàn Việt-brand operator) — separate legal entity, same shareholder group — runs the school under its own brand and is responsible for curriculum, staff, and admissions. The school will pursue chương trình tích hợp with a US private K-12 partner school after licensing.<sup class="ref">5</sup>',
+                        vi: 'Cấu trúc hai pháp nhân. <strong>Công ty Tây Nam</strong> sở hữu cơ sở vật chất, phụ trách tài sản vật chất và hợp đồng thuê dài hạn (35 năm). <strong>Công ty Toàn Việt</strong> (hoặc thương hiệu khác thuộc Toàn Việt) — pháp nhân riêng biệt, cùng nhóm cổ đông — quản lý trường dưới thương hiệu riêng, phụ trách chương trình giảng dạy, đội ngũ nhân sự và công tác tuyển sinh. Sau khi được cấp phép, nhà trường sẽ triển khai chương trình tích hợp với trường tư thục liên cấp đối tác tại Hoa Kỳ.<sup class="ref">5</sup>' },
+  'school.struct.p2': { en: 'The base case treats land rent between Tây Nam and Toàn Việt as zero, since Tây Nam is the intercompany lessor. The §5 live model has a market-rent slider so investors can stress this assumption against a hypothetical arm\'s-length rent — relevant if the structure ever unwinds or if Toàn Việt is evaluated standalone.',
+                        vi: 'Kịch bản cơ sở giả định tiền thuê đất giữa Tây Nam và Toàn Việt bằng 0, do Tây Nam là bên cho thuê nội bộ. Mô hình tương tác tại §5 có thanh trượt tiền thuê thị trường để nhà đầu tư có thể kiểm tra giả định này với mức thuê độc lập giả định — phù hợp nếu cấu trúc này tan rã hoặc khi đánh giá Toàn Việt đứng riêng.' },
+
+  'school.cap.h':         { en: 'Capacity at maturity', vi: 'Quy mô đạt công suất tối đa' },
+  'school.cap.thlevel':   { en: 'Level',    vi: 'Cấp học' },
+  'school.cap.thclasses': { en: 'Classes',  vi: 'Số lớp' },
+  'school.cap.thstudents':{ en: 'Students', vi: 'Số học sinh' },
+  'school.cap.thteachers':{ en: 'Teachers', vi: 'Số giáo viên' },
+  'school.cap.primary':   { en: 'Primary (Lớp 1–5)',                vi: 'Tiểu học (Lớp 1–5)' },
+  'school.cap.thcs':      { en: 'Lower-secondary / THCS (6–9)',     vi: 'THCS (Lớp 6–9)' },
+  'school.cap.thpt':      { en: 'High school / THPT (10–12)',       vi: 'THPT (Lớp 10–12)' },
+  'school.cap.total':     { en: 'Total at capacity',                vi: 'Tổng cộng ở công suất tối đa' },
+  'school.cap.note':      { en: '~400 total staff at capacity including admin, support, and operations.<sup class="ref">5</sup>',
+                            vi: 'Khoảng 400 cán bộ, giáo viên, nhân viên tại công suất tối đa, bao gồm hành chính, hỗ trợ và vận hành.<sup class="ref">5</sup>' },
+
+  'school.floor.h':       { en: 'Floor allocation', vi: 'Phân bố theo tầng' },
+  'school.floor.tech':    { en: 'Technical floor — services, observation', vi: 'Tầng kỹ thuật — phòng kỹ thuật, phòng quan sát' },
+  'school.floor.f5':      { en: 'Auditorium, performing arts, multi-purpose', vi: 'Hội trường, phòng nghệ thuật biểu diễn, đa năng' },
+  'school.floor.f4':      { en: 'THCS / THPT classrooms, language rooms, faculty', vi: 'Phòng học THCS / THPT, phòng ngoại ngữ, phòng giáo viên' },
+  'school.floor.f3':      { en: 'THCS / THPT classrooms, music, dance, library', vi: 'Phòng học THCS / THPT, phòng nhạc, phòng múa, thư viện' },
+  'school.floor.f2':      { en: 'Primary classrooms, language rooms', vi: 'Phòng học tiểu học, phòng ngoại ngữ' },
+  'school.floor.fmez':    { en: 'Primary library, office', vi: 'Thư viện tiểu học, văn phòng' },
+  'school.floor.f1':      { en: 'Lobby, reception, primary library, exhibits', vi: 'Sảnh chính, lễ tân, thư viện tiểu học, khu trưng bày' },
+  'school.floor.fpark':   { en: 'Parking, technical, stairs, lift access', vi: 'Khu để xe, kỹ thuật, thang bộ, thang máy' },
+  'school.floor.tagTech': { en: 'Tech',    vi: 'Kỹ thuật' },
+  'school.floor.tagShared':{ en: 'Shared', vi: 'Dùng chung' },
+  'school.floor.tagSec':  { en: 'Sec',     vi: 'Trung học' },
+  'school.floor.tagPrim': { en: 'Primary', vi: 'Tiểu học' },
+  'school.floor.tagSvc':  { en: 'Service', vi: 'Phụ trợ' },
+  'school.floor.note':    { en: 'Floor use per source project document, Section 4. Primary occupies ground floor through Tầng 2 to minimize vertical movement for younger students; secondary on Tầng 3–4; shared assets (auditorium, sports) on Tầng 5 and ground.',
+                            vi: 'Phân bố theo tầng theo tài liệu dự án, Mục 4. Khối tiểu học bố trí từ tầng 1 đến tầng 2 để hạn chế việc di chuyển theo chiều dọc cho học sinh nhỏ tuổi; khối trung học ở tầng 3–4; các khu dùng chung (hội trường, thể thao) ở tầng 5 và tầng trệt.' },
+
+  'school.gallery.h':     { en: 'Facility — design renders', vi: 'Cơ sở vật chất — phối cảnh thiết kế' },
+  'school.gallery.p':     { en: 'Architectural renders from the project document. The facility includes standard classrooms, specialty rooms (STEM / food-tech / makerspace, art, music, dance), a science lab, library, auditorium, sports facilities (gym, pool), and dining.',
+                            vi: 'Phối cảnh kiến trúc trích từ tài liệu dự án. Cơ sở vật chất bao gồm phòng học tiêu chuẩn, các phòng chuyên dụng (STEM / công nghệ thực phẩm / makerspace, nghệ thuật, âm nhạc, múa), phòng thí nghiệm khoa học, thư viện, hội trường, khu thể thao (sân tập, bể bơi) và khu ăn uống.' },
+
+  // Gallery captions
+  'gal.classroom1': { en: 'Standard classroom',          vi: 'Phòng học tiêu chuẩn' },
+  'gal.classroom2': { en: 'Classroom — alt layout',      vi: 'Phòng học — bố trí khác' },
+  'gal.library':    { en: 'Library',                      vi: 'Thư viện' },
+  'gal.science':    { en: 'Science lab',                  vi: 'Phòng thí nghiệm khoa học' },
+  'gal.foodtech':   { en: 'STEM — food technology',       vi: 'STEM — công nghệ thực phẩm' },
+  'gal.maker':      { en: 'Makerspace',                   vi: 'Phòng học sáng tạo (Makerspace)' },
+  'gal.dance':      { en: 'Dance studio',                 vi: 'Phòng múa' },
+  'gal.auditorium': { en: 'Auditorium',                   vi: 'Hội trường' },
+  'gal.multi':      { en: 'Multi-purpose hall',           vi: 'Phòng đa năng' },
+  'gal.gym':        { en: 'Sports gymnasium',             vi: 'Sân thể thao trong nhà' },
+  'gal.pool':       { en: 'Swimming pool',                vi: 'Bể bơi' },
+  'gal.canteen':    { en: 'Student canteen',              vi: 'Căng tin học sinh' },
+  'gal.cafeteria':  { en: 'Cafeteria',                    vi: 'Khu ăn uống' },
+  'gal.office':     { en: 'Staff offices',                vi: 'Văn phòng cán bộ' },
+
+  // §3 Ramp
+  'ramp.eyebrow': { en: '§3 — The 5-Year Ramp', vi: '§3 — Lộ trình tuyển sinh 5 năm' },
+  'ramp.h2':      { en: 'How the school fills.', vi: 'Trường lấp đầy như thế nào.' },
+  'ramp.lede':    { en: 'The first cohort opens with primary and lower-secondary only. High school launches in Year 4 once the primary base is mature. Year 5 reaches 1,020 students — about half the eventual capacity.',
+                    vi: 'Lứa đầu tiên khai giảng chỉ gồm tiểu học và THCS. THPT khai trương từ năm 4 khi nền tảng tiểu học đã ổn định. Năm 5 đạt 1.020 học sinh — khoảng một nửa công suất tối đa.' },
+  'ramp.chartcap': { en: 'Stacked enrollment by level. Primary (cấp 1) does the early work; lower-secondary (THCS) compounds; high school (THPT) joins in Year 4 as the first primary cohorts graduate to upper levels. Source: project document, Section 8.',
+                     vi: 'Biểu đồ tuyển sinh chồng theo cấp học. Tiểu học gánh phần đầu; THCS tăng tích lũy; THPT tham gia từ năm 4 khi các lứa tiểu học đầu tiên lên cấp trên. Nguồn: tài liệu dự án, Mục 8.' },
+
+  'ramp.thlevel':       { en: 'Level',           vi: 'Cấp học' },
+  'ramp.primClasses':   { en: 'Primary classes', vi: 'Số lớp tiểu học' },
+  'ramp.primStudents':  { en: 'Primary students',vi: 'Số HS tiểu học' },
+  'ramp.thcsClasses':   { en: 'THCS classes',    vi: 'Số lớp THCS' },
+  'ramp.thcsStudents':  { en: 'THCS students',   vi: 'Số HS THCS' },
+  'ramp.thptClasses':   { en: 'THPT classes',    vi: 'Số lớp THPT' },
+  'ramp.thptStudents':  { en: 'THPT students',   vi: 'Số HS THPT' },
+  'ramp.totalStudents': { en: 'Total students',  vi: 'Tổng số học sinh' },
+
+  'ramp.tuition.h':    { en: 'Tuition assumptions', vi: 'Giả định học phí' },
+  'ramp.tuition.thmo': { en: 'VND/student/month',   vi: 'VND/HS/tháng' },
+  'ramp.tuition.thyr': { en: 'VND/student/year (10 mo)', vi: 'VND/HS/năm (10 tháng)' },
+  'ramp.tuition.note': { en: '10 months of tuition collected per academic year. The source model holds tuition flat across 35 years (effective 0% inflation — see §8). The §5 live model defaults to the same; the inflation slider lets you compound at any rate up to 5%/yr to see the upside.',
+                         vi: 'Học phí thu trong 10 tháng/năm học. Mô hình gốc giữ học phí cố định trong suốt 35 năm (lạm phát hiệu dụng 0% — xem §8). Mô hình tương tác tại §5 mặc định cũng vậy; thanh trượt lạm phát cho phép áp dụng mức lạm phát bất kỳ tới 5%/năm để xem phần biên tăng thêm.' },
+
+  // §4 Cash flow
+  'cf.eyebrow': { en: '§4 — The Economic Shape', vi: '§4 — Cấu trúc kinh tế' },
+  'cf.h2':      { en: 'The cumulative cash flow tells the whole story.',
+                  vi: 'Dòng tiền lũy kế kể toàn bộ câu chuyện.' },
+  'cf.lede':    { en: 'This is the curve every investor in this case has to be comfortable with: a deep early trough driven by the Y3 expansion CapEx, then a long, steady recovery as enrollment compounds toward the 2,000 cap.',
+                  vi: 'Đây là đường cong mà mọi nhà đầu tư trong dự án này cần làm quen: một vùng âm sâu trong giai đoạn đầu do khoản đầu tư mở rộng năm 3, sau đó là quá trình phục hồi dài và ổn định khi tuyển sinh tích lũy hướng tới mức trần 2.000 học sinh.' },
+  'cf.chartcap': { en: 'Cumulative pre-tax cash flow, 35 years, base case. Red zone = cumulative deficit; blue zone = cumulative surplus. The curve is driven by the Y3 expansion CapEx (−200 B VND); the 50 B Y0 renovation alone never gets the project below −38 B before operations begin recovering it. <span class="deepest-marker">Deepest point: Year 3 at −176 B VND</span> · crossover to positive: Year 5.86. The base case mirrors the source Excel exactly (no tuition inflation, source\'s hand-tuned Y6+ enrollment ramp). The §5 live model lets you toggle compound inflation and other assumptions to see how the curve shifts.',
+                   vi: 'Dòng tiền lũy kế trước thuế, 35 năm, kịch bản cơ sở. Vùng đỏ = thâm hụt lũy kế; vùng xanh = thặng dư lũy kế. Đường cong chịu ảnh hưởng chính bởi khoản đầu tư mở rộng năm 3 (−200 tỷ VND); khoản 50 tỷ cải tạo năm 0 đứng riêng chỉ đưa dự án xuống tối đa −38 tỷ trước khi vận hành bắt đầu phục hồi. <span class="deepest-marker">Điểm sâu nhất: Năm 3 ở mức −176 tỷ VND</span> · chuyển dương: Năm 5,86. Kịch bản cơ sở tái lập đúng số liệu Excel gốc (không lạm phát học phí, lộ trình tuyển sinh năm 6 trở đi theo điều chỉnh thủ công của file gốc). Mô hình tương tác §5 cho phép bật lạm phát kép và các giả định khác để xem đường cong dịch chuyển ra sao.' },
+
+  'cf.card1.h': { en: 'Year 0–2 — The renovation dip', vi: 'Năm 0–2 — Vùng âm cải tạo' },
+  'cf.card1.p': { en: '50 B VND goes out the door in Year 0 to renovate the existing facility. Year 1 opens with 210 students; at 35% target margin, Y1 contribution is ~12 B VND, so cumulative ends Y1 at −38 B. By Y2 enrollment doubles to 420; cumulative climbs to about −13 B. <em>Almost back to break-even on the original investment, before Y3 hits.</em>',
+                  vi: '50 tỷ VND chi ra trong năm 0 để cải tạo cơ sở hiện hữu. Năm 1 khai giảng với 210 học sinh; ở biên lợi nhuận mục tiêu 35%, đóng góp năm 1 khoảng 12 tỷ VND, lũy kế cuối năm 1 ở mức −38 tỷ. Đến năm 2, tuyển sinh tăng gấp đôi lên 420; lũy kế lên khoảng −13 tỷ. <em>Gần như hòa vốn so với khoản đầu tư ban đầu, ngay trước khi năm 3 đến.</em>' },
+  'cf.card2.h': { en: 'Year 3 — The expansion crash', vi: 'Năm 3 — Cú lao dốc do mở rộng' },
+  'cf.card2.p': { en: '200 B VND of expansion CapEx hits in Year 3 — the build-out needed to support the full 2,000-student capacity. This is the moment the case lives or dies on. Y3 operating profit is healthy (~37 B), but the CapEx swamps it: the cumulative drops from −13 B to <strong>−176 B VND</strong>, the deepest point in the entire 35 years.',
+                  vi: '200 tỷ VND đầu tư mở rộng đến trong năm 3 — phần xây dựng cần thiết để phục vụ công suất tối đa 2.000 học sinh. Đây là thời điểm quyết định thành bại của dự án. Lợi nhuận vận hành năm 3 vẫn tốt (~37 tỷ), nhưng khoản đầu tư áp đảo: lũy kế lao từ −13 tỷ xuống <strong>−176 tỷ VND</strong>, điểm sâu nhất trong toàn bộ 35 năm.' },
+  'cf.card3.h': { en: 'Year 4–35 — The long climb', vi: 'Năm 4–35 — Hành trình phục hồi dài hạn' },
+  'cf.card3.p': { en: 'From Y4 onward, enrollment grows toward the 2,000 cap (reached around Y10) and there is no further CapEx in the base case. Annual cash flow climbs from ~49 B in Y4 to ~123 B at capacity. Cumulative crosses zero in Y5.86, hits +452 B by Y10, and ~3,500 B by Y35.',
+                  vi: 'Từ năm 4 trở đi, tuyển sinh tăng dần lên mức trần 2.000 học sinh (đạt khoảng năm 10) và không có khoản đầu tư bổ sung nào trong kịch bản cơ sở. Dòng tiền hằng năm tăng từ khoảng 49 tỷ năm 4 lên khoảng 123 tỷ ở công suất tối đa. Lũy kế chuyển dương vào năm 5,86, đạt +452 tỷ vào năm 10, và khoảng 3.500 tỷ vào năm 35.' },
+
+  // §5 Model
+  'model.eyebrow': { en: '§5 — Live Model', vi: '§5 — Mô hình tài chính tương tác' },
+  'model.h2':      { en: 'Stress the assumptions yourself.', vi: 'Tự kiểm tra các giả định.' },
+  'model.lede':    { en: 'Every slider below recomputes the cumulative cash-flow curve, the headline NPV/IRR, and payback in real time. Defaults match the base case. The diff against base updates as you change inputs.',
+                     vi: 'Mọi thanh trượt phía dưới sẽ tính lại đường dòng tiền lũy kế, NPV/IRR chính và thời gian hoàn vốn theo thời gian thực. Giá trị mặc định khớp với kịch bản cơ sở. Bảng chênh lệch so với kịch bản cơ sở cập nhật theo từng thay đổi.' },
+  'model.controls.h': { en: 'Assumptions', vi: 'Giả định đầu vào' },
+  'model.s.tuP':  { en: 'Tuition — primary',                        vi: 'Học phí — Tiểu học' },
+  'model.s.tuS':  { en: 'Tuition — secondary (THCS)',               vi: 'Học phí — THCS' },
+  'model.s.tuH':  { en: 'Tuition — high school (THPT)',             vi: 'Học phí — THPT' },
+  'model.s.op':   { en: 'Operating cost ratio',                     vi: 'Tỷ lệ chi phí vận hành' },
+  'model.s.opUnit': { en: '% of revenue', vi: '% doanh thu' },
+  'model.s.c0':   { en: 'Year-0 CapEx (renovation)',                vi: 'Vốn đầu tư năm 0 (cải tạo)' },
+  'model.s.c3':   { en: 'Year-3 CapEx (expansion)',                 vi: 'Vốn đầu tư năm 3 (mở rộng)' },
+  'model.s.inf':  { en: 'Annual tuition inflation <span style="font-weight:400; color:var(--ink-4);">(source: 0%)</span>',
+                    vi: 'Tăng học phí hằng năm <span style="font-weight:400; color:var(--ink-4);">(file gốc: 0%)</span>' },
+  'model.s.disc': { en: 'Discount rate',                            vi: 'Tỷ lệ chiết khấu' },
+  'model.s.ramp': { en: 'Y5 enrollment factor',                     vi: 'Hệ số tuyển sinh năm 5' },
+  'model.s.rent': { en: 'Market rent (intercompany override)',      vi: 'Tiền thuê thị trường (ghi đè giao dịch nội bộ)' },
+  'model.s.eq':   { en: 'Include 30 B equipment CapEx in Y0',       vi: 'Bao gồm 30 tỷ đầu tư trang thiết bị vào năm 0' },
+  'model.reset':  { en: 'Reset to base case',                       vi: 'Đặt lại về kịch bản cơ sở' },
+
+  'model.o.npv':     { en: '35-yr NPV',          vi: 'NPV 35 năm' },
+  'model.o.irr':     { en: '35-yr IRR',          vi: 'IRR 35 năm' },
+  'model.o.payback': { en: 'Cash payback',       vi: 'Thời gian hoàn vốn' },
+  'model.o.deepest': { en: 'Deepest cum. CF',    vi: 'Lũy kế thấp nhất' },
+  'model.o.base':    { en: 'base case',          vi: 'kịch bản cơ sở' },
+  'model.o.atY3':    { en: 'at Year 3',          vi: 'tại Năm 3' },
+  'model.o.vsBase':  { en: 'vs base',            vi: 'so với cơ sở' },
+  'model.o.atYr':    { en: 'at Year ',           vi: 'tại Năm ' },
+  'model.o.yrSuffix':{ en: ' yr',                vi: ' năm' },
+
+  'model.chartcap': { en: 'Live cumulative cash flow. Drag any slider to see the curve, headline numbers, and the diff panel below all update together.',
+                      vi: 'Dòng tiền lũy kế cập nhật theo thời gian thực. Kéo bất kỳ thanh trượt nào để xem đường cong, các chỉ số chính và bảng chênh lệch bên dưới cùng cập nhật.' },
+  'model.diff.h':     { en: 'What changed', vi: 'Đã thay đổi gì' },
+  'model.diff.empty': { en: 'No changes yet — sliders are at base case.', vi: 'Chưa có thay đổi — các thanh trượt đang ở kịch bản cơ sở.' },
+  'model.note.h':     { en: 'A note on the cost structure', vi: 'Ghi chú về cấu trúc chi phí' },
+  'model.note.p':     { en: 'The base case treats operating cost as <strong>65% of revenue</strong> — a target margin, not a built-up cost stack. This implicitly assumes variable cost behavior for staff, which is wrong in early years (teachers are largely fixed against enrollment). The slider lets you stress this; in reality, Y1–Y2 operating cost is likely a higher share of revenue than the late years. A bottom-up cost build is on the v2 list — see §8.',
+                        vi: 'Kịch bản cơ sở giả định chi phí vận hành là <strong>65% doanh thu</strong> — đây là biên mục tiêu, không phải cấu trúc chi phí xây dựng từ dưới lên. Điều này ngầm giả định chi phí nhân sự biến đổi theo doanh thu, vốn không đúng trong những năm đầu (chi phí giáo viên về cơ bản là cố định so với tuyển sinh). Thanh trượt cho phép kiểm tra giả định này; trên thực tế, chi phí vận hành năm 1–2 có khả năng chiếm tỷ lệ doanh thu cao hơn so với các năm sau. Cấu trúc chi phí xây từ dưới lên nằm trong danh sách v2 — xem §8.' },
+
+  // Diff panel slider names (used dynamically)
+  'diff.tuP':            { en: 'Primary tuition',         vi: 'Học phí tiểu học' },
+  'diff.tuS':            { en: 'Secondary tuition',       vi: 'Học phí THCS' },
+  'diff.tuH':            { en: 'High school tuition',     vi: 'Học phí THPT' },
+  'diff.opRatio':        { en: 'Operating cost ratio',    vi: 'Tỷ lệ chi phí vận hành' },
+  'diff.capexY0':        { en: 'Y0 CapEx',                vi: 'Vốn đầu tư năm 0' },
+  'diff.capexY3':        { en: 'Y3 CapEx',                vi: 'Vốn đầu tư năm 3' },
+  'diff.inflation':      { en: 'Inflation',               vi: 'Lạm phát' },
+  'diff.discount':       { en: 'Discount rate',           vi: 'Tỷ lệ chiết khấu' },
+  'diff.rampFactor':     { en: 'Y5 enrollment factor',    vi: 'Hệ số tuyển sinh năm 5' },
+  'diff.rent':           { en: 'Market rent',             vi: 'Tiền thuê thị trường' },
+  'diff.equipmentCapex': { en: 'Equipment CapEx',         vi: 'Vốn đầu tư trang thiết bị' },
+
+  // §6 Scenarios
+  'sc.eyebrow': { en: '§6 — Scenarios', vi: '§6 — Các kịch bản' },
+  'sc.h2':      { en: 'Probability-weighted view.', vi: 'Góc nhìn theo xác suất.' },
+  'sc.lede':    { en: 'Three scenarios with assigned probabilities. Each is a small tweak to the base-case assumptions, run through the same model. Probabilities reflect our judgment on demand, execution, and CapEx risk — not historical frequency.',
+                  vi: 'Ba kịch bản kèm xác suất gán. Mỗi kịch bản là một điều chỉnh nhỏ so với giả định cơ sở, chạy qua cùng một mô hình. Xác suất phản ánh đánh giá của chúng tôi về nhu cầu, thực thi và rủi ro vốn đầu tư — không phải tần suất lịch sử.' },
+  'sc.s1.badge': { en: '30% probability', vi: 'Xác suất 30%' },
+  'sc.s1.h':     { en: '1 — Slow ramp',   vi: '1 — Tuyển sinh chậm' },
+  'sc.s1.p1':    { en: 'Y5 enrollment lands at 70% of plan (~715 students vs 1,020). The school still works long-term, but the recovery from the Y3 deficit drags 2–3 years longer and total NPV compresses materially.',
+                   vi: 'Tuyển sinh năm 5 chỉ đạt 70% kế hoạch (~715 học sinh so với 1.020). Trường vẫn vận hành tốt về dài hạn, nhưng quá trình hồi phục sau thâm hụt năm 3 kéo dài thêm 2–3 năm và tổng NPV bị nén đáng kể.' },
+  'sc.s1.p2':    { en: '<strong>Why this probability:</strong> Demand-side risk is the single biggest uncertainty. A new bilingual school competing for parents\' attention against incumbent brands has real launch risk in years 1–2, even with the tailwinds.',
+                   vi: '<strong>Vì sao xác suất này:</strong> Rủi ro về cầu là yếu tố không chắc chắn lớn nhất. Một trường song ngữ mới cạnh tranh sự chú ý của phụ huynh với các thương hiệu hiện hữu có rủi ro khai trương thực tế trong năm 1–2, ngay cả khi có yếu tố thuận lợi.' },
+  'sc.npvLab':  { en: '35-yr NPV @ 8%', vi: 'NPV 35 năm @ 8%' },
+  'sc.s2.badge': { en: '50% — base', vi: 'Cơ sở — 50%' },
+  'sc.s2.h':     { en: '2 — Base case', vi: '2 — Kịch bản cơ sở' },
+  'sc.s2.p1':    { en: 'All assumptions as modeled, mirroring the source Excel: 15/20/20 M VND tuition (held flat), 65% op-cost ratio, 50 B Y0 + 200 B Y3 CapEx, 1,020 students by Y5, growth to 2,000 cap by Y10.',
+                   vi: 'Tất cả giả định theo mô hình, phản ánh đúng file Excel gốc: học phí 15/20/20 triệu VND (giữ cố định), tỷ lệ chi phí vận hành 65%, đầu tư 50 tỷ năm 0 + 200 tỷ năm 3, 1.020 học sinh vào năm 5, tăng lên mức trần 2.000 vào năm 10.' },
+  'sc.s2.p2':    { en: '<strong>Why this probability:</strong> The published demand and policy backdrop is firm. The execution is concentrated in the Y3 build. If that lands and enrollment tracks plan in Y1–Y2, base case is the modal outcome.',
+                   vi: '<strong>Vì sao xác suất này:</strong> Bối cảnh nhu cầu và chính sách đã công bố là chắc chắn. Phần thực thi tập trung vào đợt xây dựng năm 3. Nếu phần đó hoàn tất và tuyển sinh năm 1–2 bám theo kế hoạch, kịch bản cơ sở là kết quả xác suất cao nhất.' },
+  'sc.s3.badge': { en: '20% probability', vi: 'Xác suất 20%' },
+  'sc.s3.h':     { en: '3 — CapEx overrun + tuition compression', vi: '3 — Vượt vốn đầu tư + nén học phí' },
+  'sc.s3.p1':    { en: 'Y3 CapEx runs 30% over (260 B); realized tuition is 90% of plan (competitive pressure or discounting in early cohorts). Combined effect deepens the trough by ~75 B and pushes payback 1–1.5 years out.',
+                   vi: 'Vốn đầu tư năm 3 vượt 30% (260 tỷ); học phí thực tế chỉ đạt 90% kế hoạch (do áp lực cạnh tranh hoặc giảm giá cho lứa đầu). Tác động kết hợp khoét vùng âm sâu thêm khoảng 75 tỷ và đẩy thời gian hoàn vốn ra thêm 1–1,5 năm.' },
+  'sc.s3.p2':    { en: '<strong>Why this probability:</strong> CapEx overruns on Vietnamese construction projects are common; tuition compression is plausible if a competing school launches in the same catchment. Both at once is less common than each individually.',
+                   vi: '<strong>Vì sao xác suất này:</strong> Vượt vốn đầu tư là chuyện thường gặp ở các dự án xây dựng tại Việt Nam; nén học phí là khả năng hợp lý nếu có trường cạnh tranh khai trương trong cùng địa bàn tuyển sinh. Cả hai cùng xảy ra ít gặp hơn so với mỗi yếu tố riêng lẻ.' },
+  'sc.pwLab':    { en: 'Probability-weighted 35-yr NPV @ 8%', vi: 'NPV 35 năm @ 8% bình quân theo xác suất' },
+
+  // §7 Sensitivity
+  'sens.eyebrow': { en: '§7 — Sensitivity', vi: '§7 — Phân tích độ nhạy' },
+  'sens.h2':      { en: 'What moves the needle.', vi: 'Yếu tố nào tác động lớn nhất.' },
+  'sens.lede':    { en: 'NPV impact of ±20% changes to each major assumption, holding all others at base case. Sorted by magnitude. The chart confirms the expected ordering — operating-cost structure dominates, followed by enrollment realization at Y5.',
+                    vi: 'Tác động đến NPV khi thay đổi ±20% từng giả định chính, giữ nguyên các giả định khác ở kịch bản cơ sở. Sắp xếp theo độ lớn tác động. Biểu đồ xác nhận thứ tự dự kiến — cấu trúc chi phí vận hành tác động lớn nhất, tiếp đến là kết quả tuyển sinh năm 5.' },
+  'sens.chartcap': { en: 'Tornado chart: bar length = absolute change in 35-yr NPV from a ±20% shift in that assumption. Computed against base case; effects do not compound across rows. The operating-cost ratio is a target margin in this model — its sensitivity will be understated until a bottom-up cost build replaces it (see §8).',
+                     vi: 'Biểu đồ xương cá: độ dài thanh = mức thay đổi tuyệt đối của NPV 35 năm khi thay đổi ±20% giả định đó. Tính so với kịch bản cơ sở; tác động không cộng dồn giữa các dòng. Tỷ lệ chi phí vận hành trong mô hình này là biên mục tiêu — độ nhạy của nó sẽ bị đánh giá thấp cho đến khi được thay bằng cấu trúc chi phí xây từ dưới lên (xem §8).' },
+
+  // §8 Risks
+  'risk.eyebrow': { en: '§8 — Risks &amp; Open Questions', vi: '§8 — Rủi ro &amp; Câu hỏi mở' },
+  'risk.h2':      { en: 'What this model does not capture.', vi: 'Những gì mô hình chưa phản ánh.' },
+  'risk.lede':    { en: "An honest list of the things the cash-flow model under- or over-states. This section isn't a hedge — it's the part of the analysis that determines whether the headline numbers above can be trusted. Read it carefully.",
+                    vi: 'Danh sách trung thực những điểm mà mô hình dòng tiền đang đánh giá thiếu hoặc quá. Mục này không phải để rào trước — đây là phần phân tích quyết định liệu các con số chính phía trên có đáng tin hay không. Đọc kỹ.' },
+  'risk.r1.h':    { en: 'Operating cost is a target margin, not a built-up stack',
+                    vi: 'Chi phí vận hành là biên mục tiêu, không phải cấu trúc chi phí xây từ dưới lên' },
+  'risk.r1.p':    { en: 'The model assumes operating cost = 65% of revenue (the inverse of the 35% target PBT margin). A bottom-up build — teacher headcount × salary by level, plus admin, facilities, marketing, learning materials — would almost certainly show fixed costs dominating in Y1–Y2 (when revenue is small but the school is fully staffed). The §5 live model lets you stress the ratio, but the right fix is a real cost stack. <strong>This is the single biggest analytical gap.</strong>',
+                    vi: 'Mô hình giả định chi phí vận hành = 65% doanh thu (nghịch đảo của biên lợi nhuận trước thuế mục tiêu 35%). Một cấu trúc xây từ dưới lên — số lượng giáo viên × mức lương theo cấp, cộng với hành chính, cơ sở vật chất, marketing, học liệu — gần như chắc chắn sẽ cho thấy chi phí cố định chiếm tỷ trọng lớn trong năm 1–2 (khi doanh thu còn nhỏ nhưng trường đã đủ biên chế). Mô hình tương tác §5 cho phép kiểm tra tỷ lệ này, nhưng cách khắc phục đúng là dựng một cấu trúc chi phí thực sự. <strong>Đây là khoảng trống phân tích lớn nhất.</strong>' },
+  'risk.r2.h':    { en: '30 B VND equipment CapEx is missing from the source cash flow',
+                    vi: '30 tỷ VND đầu tư trang thiết bị bị thiếu trong dòng tiền gốc' },
+  'risk.r2.p':    { en: 'The project document references 30 B VND for equipment and learning materials, funded by the investor group separately. The source cash-flow model does not include this. The §5 live model has a toggle: switching it on deepens the Y0 hole to −80 B and pushes payback out by ~3 months.<sup class="ref">5</sup>',
+                    vi: 'Tài liệu dự án nêu 30 tỷ VND cho trang thiết bị và học liệu, do nhóm nhà đầu tư cấp vốn riêng. Mô hình dòng tiền gốc không bao gồm khoản này. Mô hình tương tác §5 có nút bật/tắt: bật lên sẽ khoét vùng âm năm 0 sâu xuống −80 tỷ và đẩy thời gian hoàn vốn ra thêm khoảng 3 tháng.<sup class="ref">5</sup>' },
+  'risk.r3.h':    { en: 'Land rent between Tây Nam and Toàn Việt is zero — accounting reality, not economic reality',
+                    vi: 'Tiền thuê đất giữa Tây Nam và Toàn Việt bằng 0 — phản ánh kế toán, không phải bản chất kinh tế' },
+  'risk.r3.p':    { en: 'The base case treats land rent between Tây Nam (facility owner) and Toàn Việt (operator) as zero (intercompany). For an investor evaluating Toàn Việt standalone, or for any future scenario where the two entities separate, market rent should be assumed. The §5 live model has a 0–20 B/yr slider so you can see what happens. At 10 B/yr market rent, NPV drops by ~110 B and payback shifts ~1 year later.',
+                    vi: 'Kịch bản cơ sở giả định tiền thuê đất giữa Tây Nam (chủ cơ sở) và Toàn Việt (đơn vị vận hành) bằng 0 (giao dịch nội bộ). Với nhà đầu tư đánh giá Toàn Việt đứng riêng, hoặc trong mọi kịch bản tương lai mà hai pháp nhân tách biệt, cần giả định tiền thuê thị trường. Mô hình tương tác §5 có thanh trượt 0–20 tỷ/năm để xem tác động. Ở mức thuê thị trường 10 tỷ/năm, NPV giảm khoảng 110 tỷ và thời gian hoàn vốn lùi khoảng 1 năm.' },
+  'risk.r4.h':    { en: 'The source Excel applies 3% tuition inflation incorrectly — base case here matches the source',
+                    vi: 'Excel gốc áp dụng lạm phát học phí 3% sai cách — kịch bản cơ sở ở đây khớp với file gốc' },
+  'risk.r4.p':    { en: 'The source spreadsheet applies a one-time +3% bump to Y2–Y5 revenue rather than compounding year-over-year, and the 35-year cash flow line then ignores inflation entirely (effective rate: 0% across 35 years). To stay faithful to the source\'s published headline numbers, this page\'s base case also uses 0% effective inflation — so the 814 B NPV / 35.0% IRR / Y5.86 payback all reconcile to the source Excel exactly. The §5 live-model inflation slider lets you dial in true compound inflation. At 3%/yr compounded across 35 years, NPV roughly +60% over the source figure.',
+                    vi: 'File gốc nhân thêm 3% một lần lên doanh thu năm 2–5 thay vì cộng dồn theo từng năm, và dòng dòng tiền 35 năm sau đó bỏ qua hoàn toàn lạm phát (mức lạm phát hiệu dụng: 0% trong 35 năm). Để giữ đúng các con số chính đã công bố trong file gốc, kịch bản cơ sở của trang này cũng dùng lạm phát hiệu dụng 0% — vì vậy NPV 814 tỷ / IRR 35,0% / hoàn vốn năm 5,86 đều khớp đúng với Excel gốc. Thanh trượt lạm phát trong mô hình tương tác §5 cho phép áp dụng lạm phát kép thực sự. Ở mức 3%/năm cộng dồn trong 35 năm, NPV tăng khoảng +60% so với con số gốc.' },
+  'risk.r5.h':    { en: 'The Y6+ enrollment ramp is doing significant work',
+                    vi: 'Lộ trình tuyển sinh năm 6 trở đi đóng vai trò quan trọng' },
+  'risk.r5.p':    { en: 'Annual cash flow at the 2,000-student cap is ~123 B VND — meaning Years 6 through 35 contribute the overwhelming majority of NPV. The base case fills the school from 1,020 to 2,000 over Y6–Y10. If that ramp slows materially, the long-tail NPV compresses. The §7 sensitivity captures a part of this; the §6 "slow ramp" scenario captures another part.',
+                    vi: 'Dòng tiền hằng năm ở mức trần 2.000 học sinh khoảng 123 tỷ VND — nghĩa là các năm 6 đến 35 đóng góp phần lớn áp đảo của NPV. Kịch bản cơ sở lấp đầy trường từ 1.020 lên 2.000 trong giai đoạn năm 6–10. Nếu lộ trình này chậm lại đáng kể, phần NPV ở đuôi dài sẽ bị nén. §7 độ nhạy phản ánh một phần điều này; kịch bản "tuyển sinh chậm" tại §6 phản ánh phần còn lại.' },
+  'risk.r6.h':    { en: 'Tuition benchmarking is asserted, not shown',
+                    vi: 'So sánh học phí được khẳng định nhưng chưa được chứng minh' },
+  'risk.r6.p':    { en: "The 15/20/20 M VND tuition assumption is consistent with comparable bilingual schools in central HCMC, per the source project document — but a comparable table (named schools, current published tuition, programs) is not in this v1. It's on the v2 list. If realized tuition lands meaningfully below assumption, the §6 scenario 3 captures the impact.",
+                    vi: 'Giả định học phí 15/20/20 triệu VND phù hợp với các trường song ngữ tương đương ở trung tâm TP HCM, theo tài liệu dự án — nhưng bảng so sánh chi tiết (tên trường, học phí hiện công bố, chương trình) chưa có trong v1. Nó nằm trong danh sách v2. Nếu học phí thực tế thấp hơn giả định một cách đáng kể, kịch bản 3 tại §6 phản ánh tác động đó.' },
+  'risk.r7.h':    { en: '"Cash flow" in this model = revenue × 35% margin',
+                    vi: '"Dòng tiền" trong mô hình này = doanh thu × biên 35%' },
+  'risk.r7.p':    { en: 'No working capital, no depreciation, no tax. The IRR and NPV are pre-tax, on a target-margin construction. For a real cash payback profile in a real CFO sense, the model needs depreciation (at minimum, a straight-line on the 250 B CapEx), a working-capital schedule for tuition collection cycles, and a corporate tax line. None of these change the 35-year direction, but they sharpen the early years.',
+                    vi: 'Không có vốn lưu động, không có khấu hao, không có thuế. IRR và NPV là trước thuế, dựa trên cấu trúc biên mục tiêu. Để có hồ sơ hoàn vốn tiền mặt thực sự theo nghĩa CFO thực thụ, mô hình cần khấu hao (tối thiểu là khấu hao đường thẳng trên 250 tỷ vốn đầu tư), lịch trình vốn lưu động theo chu kỳ thu học phí và dòng thuế thu nhập doanh nghiệp. Không yếu tố nào thay đổi xu hướng 35 năm, nhưng chúng làm rõ hơn các năm đầu.' },
+
+  // §9 Sources
+  'src.eyebrow': { en: '§9 — Sources', vi: '§9 — Nguồn tham khảo' },
+  'src.h2':      { en: 'References.', vi: 'Tham chiếu.' },
+  'src.lede':    { en: 'Every demand-side and structural claim in this page traces to one of the references below. Internal financial figures (NPV, IRR, payback, cash flow shape) are computed in this page from the source Excel model with the corrections noted in §8.',
+                   vi: 'Mọi nhận định về phía cầu và về cấu trúc trên trang này đều có thể truy ngược tới một trong các tham chiếu bên dưới. Các con số tài chính nội bộ (NPV, IRR, hoàn vốn, hình dạng dòng tiền) được tính trực tiếp trong trang này từ mô hình Excel gốc, kèm các điều chỉnh ghi tại §8.' },
+  'src.r1':      { en: 'HCMC Department of Education and Training (Sở GD&amp;ĐT TP HCM), 2025–26 enrollment figures. 2,528,789 students; +39,632 vs prior year; +42,978 in lower-secondary; 1,287 new classrooms planned. <span class="ref">Tuổi Trẻ Online &amp; Người Lao Động, Aug–Sep 2025.</span>',
+                   vi: 'Sở GD&amp;ĐT TP HCM, số liệu tuyển sinh năm học 2025–26. 2.528.789 học sinh; tăng 39.632 so với năm trước; +42.978 ở cấp THCS; 1.287 phòng học mới được dự kiến bổ sung. <span class="ref">Tuổi Trẻ Online &amp; Người Lao Động, tháng 8–9/2025.</span>' },
+  'src.r2':      { en: 'HCMC Department of Education and Training, 2024–25 general-education report: 4,865 teacher recruitment shortfall, ~3,500 schools, ~110,000 teachers in HCMC; acknowledgment that the network "still does not meet learning demand." <span class="ref">Government source via Tuổi Trẻ Online and Giáo Dục TPHCM.</span>',
+                   vi: 'Sở GD&amp;ĐT TP HCM, báo cáo nhiệm vụ giáo dục phổ thông năm học 2024–25: thiếu 4.865 giáo viên, khoảng 3.500 trường, khoảng 110.000 giáo viên tại TP HCM; thừa nhận mạng lưới "vẫn chưa đáp ứng được yêu cầu học tập". <span class="ref">Nguồn chính phủ qua Tuổi Trẻ Online và Giáo Dục TPHCM.</span>' },
+  'src.r3':      { en: 'Government of Vietnam, <strong>Quyết định 2371/QĐ-TTg</strong> dated 27 October 2025: Approval of the program "Bringing English into being the second language in schools for the 2025–2035 period, with vision to 2045." <span class="ref">Cited in source project document, Section 1.</span>',
+                   vi: 'Chính phủ Việt Nam, <strong>Quyết định 2371/QĐ-TTg</strong> ngày 27/10/2025: Phê duyệt Đề án "Đưa tiếng Anh thành ngôn ngữ thứ hai trong trường học giai đoạn 2025–2035, tầm nhìn đến năm 2045". <span class="ref">Trích dẫn trong tài liệu dự án, Mục 1.</span>' },
+  'src.r4':      { en: 'National Assembly Standing Committee, <strong>Nghị quyết 1685/NQ-UBTVQH15</strong>: Reorganization of administrative units in HCMC, including the new ward boundaries relevant to this catchment area. <span class="ref">Cited in source project document, Section 1.</span>',
+                   vi: 'Ủy ban Thường vụ Quốc hội, <strong>Nghị quyết 1685/NQ-UBTVQH15</strong>: Sắp xếp các đơn vị hành chính của TP HCM, bao gồm ranh giới phường mới liên quan đến địa bàn tuyển sinh này. <span class="ref">Trích dẫn trong tài liệu dự án, Mục 1.</span>' },
+  'src.r5':      { en: 'Source project document, "DỰ ÁN ĐẦU TƯ TRƯỜNG [tên trường] — tại Đường Thành Thái, Phường Diên Hồng, TP HCM" — Sections 1–9, including legal basis, capacity plans, floor allocation, staffing plans, and operating-structure description. Equipment CapEx (30 B VND) referenced in Section 6, para 185. US partner-school chương trình tích hợp intent referenced in Section 3 and Section 8. Operating structure (Công ty Tây Nam as facility owner ↔ Công ty Toàn Việt / Toàn Việt-brand operator) referenced in Section 9 ("ĐỀ XUẤT MÔ HÌNH HOẠT ĐỘNG VÀ MÔ HÌNH TÀI CHÍNH CƠ BẢN"). <span class="ref">Internal, dated Tháng .. năm 2026.</span>',
+                   vi: 'Tài liệu dự án gốc, "DỰ ÁN ĐẦU TƯ TRƯỜNG [tên trường] — tại Đường Thành Thái, Phường Diên Hồng, TP HCM" — Mục 1–9, bao gồm căn cứ pháp lý, kế hoạch quy mô, phân bố theo tầng, kế hoạch nhân sự và mô tả cấu trúc hoạt động. Vốn đầu tư trang thiết bị (30 tỷ VND) được nêu tại Mục 6, đoạn 185. Định hướng chương trình tích hợp phối hợp với trường đối tác Hoa Kỳ được nêu tại Mục 3 và Mục 8. Cấu trúc hoạt động (Công ty Tây Nam là chủ cơ sở ↔ Công ty Toàn Việt / thương hiệu khác thuộc Toàn Việt vận hành) được nêu tại Mục 9 ("ĐỀ XUẤT MÔ HÌNH HOẠT ĐỘNG VÀ MÔ HÌNH TÀI CHÍNH CƠ BẢN"). <span class="ref">Tài liệu nội bộ, đề ngày Tháng .. năm 2026.</span>' },
+  'src.r6':      { en: 'Source cash-flow model, Excel workbook: Dashboard, Assumptions, Model_5Y, CashFlow_35Y sheets. All headline figures (814 B NPV, 35.0% IRR, −176 B deepest cumulative, Y5.86 payback) recomputed in this page from first principles per the source assumptions, with corrections noted in §8 (compounding inflation; payback formula). <span class="ref">Internal Excel workbook.</span>',
+                   vi: 'Mô hình dòng tiền gốc, file Excel: các sheet Dashboard, Assumptions, Model_5Y, CashFlow_35Y. Tất cả các con số chính (NPV 814 tỷ, IRR 35,0%, lũy kế thấp nhất −176 tỷ, hoàn vốn năm 5,86) được tính lại trực tiếp trên trang này từ các giả định gốc, kèm các điều chỉnh ghi tại §8 (lạm phát kép; công thức hoàn vốn). <span class="ref">File Excel nội bộ.</span>' },
+  'src.r7':      { en: 'Regulatory grounding (referenced in source project document, Section 1): Luật Giáo dục 43/2019/QH14; Luật Đầu tư 61/2020/QH14; Luật Doanh nghiệp 59/2020/QH14; Nghị định 46/2017/NĐ-CP; <strong>Thông tư 32/2020/TT-BGDĐT</strong> (general-education school regulations); <strong>Thông tư 13/2020/TT-BGDĐT</strong> (facility standards); TCVN 8793:2011 / TCVN 8794:2011 (primary / secondary school design standards).',
+                   vi: 'Căn cứ pháp lý (trích dẫn trong tài liệu dự án, Mục 1): Luật Giáo dục 43/2019/QH14; Luật Đầu tư 61/2020/QH14; Luật Doanh nghiệp 59/2020/QH14; Nghị định 46/2017/NĐ-CP; <strong>Thông tư 32/2020/TT-BGDĐT</strong> (Điều lệ trường phổ thông); <strong>Thông tư 13/2020/TT-BGDĐT</strong> (tiêu chuẩn cơ sở vật chất); TCVN 8793:2011 / TCVN 8794:2011 (tiêu chuẩn thiết kế trường tiểu học / trung học).' },
+
+  // Footer
+  'footer.line1': { en: 'Toàn Việt × Tây Nam · K-12 Bilingual School at Đường Thành Thái, Phường Diên Hồng, TP HCM · Internal v1 · May 2026',
+                    vi: 'Toàn Việt × Tây Nam · Trường liên cấp song ngữ K-12 tại Đường Thành Thái, Phường Diên Hồng, TP HCM · Nội bộ v1 · Tháng 5, 2026' },
+  'footer.line2': { en: 'All currency values in tỷ VND (B VND) unless noted. Model recomputes client-side.',
+                    vi: 'Tất cả giá trị tiền tệ tính bằng tỷ VND, trừ khi có ghi chú khác. Mô hình tính toán trực tiếp trên trình duyệt.' },
+
+  // Chart labels
+  'chart.primary':  { en: 'Primary',                            vi: 'Tiểu học' },
+  'chart.thcs':     { en: 'THCS',                               vi: 'THCS' },
+  'chart.thpt':     { en: 'THPT',                               vi: 'THPT' },
+  'chart.totalLab': { en: 'Total: ',                            vi: 'Tổng: ' },
+  'chart.cumCF':    { en: 'Cumulative cash flow',               vi: 'Dòng tiền lũy kế' },
+  'chart.year':     { en: 'Year ',                              vi: 'Năm ' },
+  'chart.cum':      { en: 'Cumulative: ',                       vi: 'Lũy kế: ' },
+  'chart.fcf':      { en: 'Annual FCF: ',                       vi: 'Dòng tiền năm: ' },
+  'chart.students': { en: 'Students: ',                         vi: 'Học sinh: ' },
+  'chart.cfYAxis':  { en: 'Cumulative cash flow (B VND)',       vi: 'Dòng tiền lũy kế (tỷ VND)' },
+  'chart.deltaNpv': { en: 'Δ NPV: ',                            vi: 'Δ NPV: ' },
+  'chart.tornadoX': { en: 'Δ 35-yr NPV (B VND) from base case', vi: 'Δ NPV 35 năm (tỷ VND) so với cơ sở' },
+  'chart.tornado20down': { en: '−20%', vi: '−20%' },
+  'chart.tornado20up':   { en: '+20%', vi: '+20%' },
+  // Tornado row labels (must match the labels in sensitivity())
+  'tornado.opRatio':    { en: 'Operating cost ratio',  vi: 'Tỷ lệ chi phí vận hành' },
+  'tornado.rampFactor': { en: 'Y5 enrollment factor',  vi: 'Hệ số tuyển sinh năm 5' },
+  'tornado.capexY3':    { en: 'Year-3 CapEx',          vi: 'Vốn đầu tư năm 3' },
+  'tornado.tuP':        { en: 'Tuition — primary',     vi: 'Học phí — Tiểu học' },
+  'tornado.tuS':        { en: 'Tuition — secondary',   vi: 'Học phí — THCS' },
+  'tornado.inflation':  { en: 'Annual inflation',      vi: 'Lạm phát hằng năm' },
+  'tornado.discount':   { en: 'Discount rate',         vi: 'Tỷ lệ chiết khấu' },
+  'tornado.capexY0':    { en: 'Year-0 CapEx',          vi: 'Vốn đầu tư năm 0' },
+};
+
+let CURRENT_LANG = 'en';
+function t(key) {
+  const e = I18N[key];
+  if (!e) return key;
+  return e[CURRENT_LANG] || e.en || key;
+}
+
+function applyLang(lang) {
+  CURRENT_LANG = lang;
+  document.documentElement.lang = lang;
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const attr = el.getAttribute('data-i18n-attr');
+    const txt = t(key);
+    if (attr) el.setAttribute(attr, txt);
+    else el.innerHTML = txt;
+  });
+  // Re-translate the diff panel labels object (used by updateDiff)
+  Object.keys(labels).forEach(k => {
+    const trKey = 'diff.' + k;
+    if (I18N[trKey]) labels[k] = t(trKey);
+  });
+  // Update toggle buttons
+  document.querySelectorAll('.lang-toggle button').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+  });
+  // Save preference
+  try { localStorage.setItem('ip1_lang', lang); } catch (e) {}
+  // Update document title
+  document.title = lang === 'vi'
+    ? 'Trường liên cấp song ngữ K-12 — Đề án đầu tư'
+    : 'K-12 Bilingual School — Investment Case';
+  // Re-render charts and outputs to reflect translated labels and recomputed deltas
+  rebuildCharts();
+  setupScenarios();
+  recompute();
+}
+
+// Rebuild charts with translated labels
+function rebuildCharts() {
+  // Ramp chart
+  rampChart.data.datasets[0].label = t('chart.primary');
+  rampChart.data.datasets[1].label = t('chart.thcs');
+  rampChart.data.datasets[2].label = t('chart.thpt');
+  rampChart.options.plugins.tooltip.callbacks.footer = (items) => {
+    const total = items.reduce((a, i) => a + i.parsed.y, 0);
+    return t('chart.totalLab') + total.toLocaleString();
+  };
+  rampChart.update();
+
+  // Cash flow chart (the static §4 chart)
+  cfChart.data.datasets[0].label = t('chart.cumCF');
+  cfChart.options = cfOptionsLocalized(BASE_RESULT);
+  cfChart.update();
+
+  // Sensitivity chart — relabel rows + datasets + axes
+  if (window.sensChart) {
+    window.sensChart.data.labels = sensRows.map(r => t('tornado.' + r.key));
+    window.sensChart.data.datasets[0].label = t('chart.tornado20down');
+    window.sensChart.data.datasets[1].label = t('chart.tornado20up');
+    window.sensChart.options.scales.x.title.text = t('chart.tornadoX');
+    window.sensChart.options.plugins.tooltip.callbacks.label = (ctx) => t('chart.deltaNpv') + fmtBs(ctx.parsed.x, 0) + ' VND';
+    window.sensChart.update();
+  }
+}
+
+// Localized cf options factory
+function cfOptionsLocalized(result) {
+  const base = cfOptions(result);
+  base.plugins.tooltip.callbacks.title = (items) => t('chart.year') + items[0].dataIndex;
+  base.plugins.tooltip.callbacks.label = (ctx) => t('chart.cum') + fmtBs(ctx.parsed.y, 1) + ' VND';
+  base.plugins.tooltip.callbacks.afterLabel = (ctx) => {
+    const y = ctx.dataIndex;
+    return [
+      t('chart.fcf') + fmtBs(result.fcf[y], 1) + ' VND',
+      t('chart.students') + (result.students.primary[y] + result.students.secondary[y] + result.students.hs[y]).toLocaleString(),
+    ];
+  };
+  base.scales.y.title.text = t('chart.cfYAxis');
+  return base;
+}
+
+// Override updateChart to use localized options
+const _origUpdateChart = updateChart;
+updateChart = function(result) {
+  liveChart.data = cfData(result);
+  liveChart.options = cfOptionsLocalized(result);
+  liveChart.update('none');
+};
+
+// Override updateOutputs deltas to use translated suffix
+const _origUpdateOutputs = updateOutputs;
+updateOutputs = function(result) {
+  document.getElementById('o-npv').textContent     = fmtBs(result.npv);
+  document.getElementById('o-irr').textContent     = fmtPct(result.irr);
+  document.getElementById('o-payback').textContent = fmtPay(result.payback);
+  document.getElementById('o-deepest').textContent = fmtBs(result.deepest.value);
+  const npvEl = document.getElementById('o-npv');
+  const irrEl = document.getElementById('o-irr');
+  npvEl.className = 'v ' + (result.npv >= 0 ? 'positive' : 'deficit');
+  irrEl.className = 'v ' + (result.irr >= BASE.discount ? 'positive' : 'deficit');
+  function setDelta(id, curr, base, fmt) {
+    const el = document.getElementById(id);
+    const d = curr - base;
+    if (Math.abs(d) < 0.01) {
+      el.textContent = t('model.o.base');
+      el.className = 'delta';
+    } else {
+      const arrow = d > 0 ? '▲' : '▼';
+      el.textContent = arrow + ' ' + fmt(Math.abs(d)) + ' ' + t('model.o.vsBase');
+      el.className = 'delta ' + (d > 0 ? 'up' : 'down');
+    }
+  }
+  setDelta('d-npv',     result.npv,           BASE_RESULT.npv,           v => fmtBs(v));
+  setDelta('d-irr',     result.irr,           BASE_RESULT.irr,           v => fmtPct(v));
+  setDelta('d-payback', result.payback || 99, BASE_RESULT.payback,       v => v.toFixed(2) + t('model.o.yrSuffix'));
+  setDelta('d-deepest', result.deepest.value, BASE_RESULT.deepest.value, v => fmtBs(v));
+  const yPrefix = CURRENT_LANG === 'vi' ? 'N' : 'Y';
+  document.getElementById('d-deepest').textContent += ' (' + yPrefix + result.deepest.year + ')';
+};
+
+// Override updateDiff to use translated empty state
+const _origUpdateDiff = updateDiff;
+updateDiff = function(s) {
+  const changes = [];
+  for (const k of Object.keys(BASE)) {
+    const b = BASE[k], v = s[k];
+    if (Math.abs(b - v) > 0.0001) changes.push({ key: k, base: b, val: v });
+  }
+  const panel = document.getElementById('diff-panel');
+  const body = document.getElementById('diff-body');
+  if (changes.length === 0) {
+    panel.classList.add('empty');
+    body.textContent = t('model.diff.empty');
+  } else {
+    panel.classList.remove('empty');
+    body.innerHTML = changes.map(c => {
+      const fmt = labelFmt[c.key] || (v => v);
+      const dir = c.val > c.base ? '↑' : '↓';
+      return '<div style="margin: 4px 0;"><strong>' + (labels[c.key] || c.key) + '</strong>: ' +
+             '<span class="mono">' + fmt(c.base) + '</span> → ' +
+             '<span class="mono" style="color: var(--blue-7); font-weight:600;">' + fmt(c.val) + '</span> ' +
+             '<span style="color: var(--ink-4);">' + dir + '</span></div>';
+    }).join('');
+  }
+};
+
+// Track sensitivity row keys so we can relabel them
+sensRows.forEach((r, i) => {
+  const tests = [
+    { label: 'Operating cost ratio',  key: 'opRatio' },
+    { label: 'Y5 enrollment factor',  key: 'rampFactor' },
+    { label: 'Year-3 CapEx',          key: 'capexY3' },
+    { label: 'Tuition — primary',     key: 'tuP' },
+    { label: 'Tuition — secondary',   key: 'tuS' },
+    { label: 'Annual inflation',      key: 'inflation' },
+    { label: 'Discount rate',         key: 'discount' },
+    { label: 'Year-0 CapEx',          key: 'capexY0' },
+  ];
+  const m = tests.find(t => t.label === r.label);
+  if (m) r.key = m.key;
+});
+window.sensChart = Chart.getChart('sensChart');
+
+// Wire the language toggles
+document.querySelectorAll('.lang-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.getAttribute('data-lang')));
+});
+const gateLangEn = document.getElementById('gate-lang-en');
+const gateLangVi = document.getElementById('gate-lang-vi');
+if (gateLangEn) gateLangEn.addEventListener('click', () => applyLang('en'));
+if (gateLangVi) gateLangVi.addEventListener('click', () => applyLang('vi'));
+
+// Initial language: localStorage > browser default
+let initialLang = 'en';
+try {
+  const saved = localStorage.getItem('ip1_lang');
+  if (saved === 'vi' || saved === 'en') initialLang = saved;
+  else if (navigator.language && navigator.language.toLowerCase().startsWith('vi')) initialLang = 'vi';
+} catch (e) {}
+applyLang(initialLang);
+
+// Initial render
+recompute();
+</script>
+
+</body>
+</html>
