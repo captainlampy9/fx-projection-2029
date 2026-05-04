@@ -190,7 +190,12 @@
 
   /* Hero */
   .hero { padding-top: 96px; padding-bottom: 84px; background: linear-gradient(180deg, var(--blue-0) 0%, var(--bg) 100%); border-bottom: 1px solid var(--line); }
-  .hero h1 { font-size: 60px; }
+  .hero h1 { font-size: 56px; line-height: 1.08; }
+  .hero .subtitle {
+    font-size: 17px; color: var(--ink-3);
+    margin-top: 14px; max-width: 880px;
+    font-weight: 500; letter-spacing: 0;
+  }
   .hero .dek {
     font-size: 22px; color: var(--ink-2); max-width: 880px;
     margin-top: 24px; line-height: 1.45;
@@ -584,7 +589,7 @@
   <div class="topnav-inner">
     <div class="brand">
       <span class="brand-dot"></span>
-      <span class="brand-name">Toàn Việt × Tây Nam · Project I</span>
+      <span class="brand-name">Trường Thành Thái Q10</span>
     </div>
     <div class="links">
       <a href="#market" data-i18n="nav.market">Market</a>
@@ -609,8 +614,9 @@
 
 <section class="hero" id="hero">
   <div class="container">
-    <div class="section-eyebrow" data-i18n="hero.eyebrow">Toàn Việt × Tây Nam · K-12 Bilingual School · Investment Case · Đường Thành Thái, Phường Diên Hồng, TP HCM</div>
-    <h1 data-i18n="hero.h1">A K-12 bilingual school on Đường Thành Thái, Phường Diên Hồng, TP HCM.</h1>
+    <div class="section-eyebrow" data-i18n="hero.eyebrow">Toàn Việt × Tây Nam · Investment Case · May 2026</div>
+    <h1 data-i18n="hero.h1">PROJECT — THÀNH THÁI Q10 K-12 BILINGUAL SCHOOL</h1>
+    <p class="subtitle" data-i18n="hero.subtitle">Đường Thành Thái, Phường Diên Hồng (former Quận 10), TP HCM</p>
     <p class="dek" data-i18n="hero.dek">
       <b>35% pre-tax IRR</b> over 35 years — but it asks investors to fund a
       <b>176 B VND cumulative shortfall</b> before the math turns.
@@ -2000,10 +2006,12 @@ const I18N = {
   'gate.empty':       { en: 'Enter the access key.',   vi: 'Vui lòng nhập mã truy cập.' },
 
   // Hero
-  'hero.eyebrow': { en: 'Toàn Việt × Tây Nam · K-12 Bilingual School · Investment Case · Đường Thành Thái, Phường Diên Hồng, TP HCM',
-                    vi: 'Toàn Việt × Tây Nam · Trường liên cấp song ngữ K-12 · Đề án đầu tư · Đường Thành Thái, Phường Diên Hồng, TP HCM' },
-  'hero.h1':      { en: 'A K-12 bilingual school on Đường Thành Thái, Phường Diên Hồng, TP HCM.',
-                    vi: 'Trường liên cấp song ngữ K-12 tại Đường Thành Thái, Phường Diên Hồng, TP HCM.' },
+  'hero.eyebrow': { en: 'Toàn Việt × Tây Nam · Investment Case · May 2026',
+                    vi: 'Toàn Việt × Tây Nam · Đề án đầu tư · Tháng 5, 2026' },
+  'hero.h1':      { en: 'PROJECT — THÀNH THÁI Q10 K-12 BILINGUAL SCHOOL',
+                    vi: 'DỰ ÁN — TRƯỜNG LIÊN CẤP THÀNH THÁI Q10' },
+  'hero.subtitle':{ en: 'Đường Thành Thái, Phường Diên Hồng (former Quận 10), TP HCM',
+                    vi: 'Đường Thành Thái, Phường Diên Hồng (Quận 10 cũ), TP HCM' },
   'hero.dek':     { en: '<b>35% pre-tax IRR</b> over 35 years — but it asks investors to fund a <b>176 B VND cumulative shortfall</b> before the math turns.',
                     vi: '<b>IRR trước thuế 35%</b> trong 35 năm — nhưng yêu cầu nhà đầu tư cấp vốn cho khoản <b>thâm hụt lũy kế 176 tỷ VND</b> trước khi mô hình chuyển dương.' },
   'hero.s1.l':    { en: 'Initial CapEx', vi: 'Vốn đầu tư ban đầu' },
@@ -2374,8 +2382,8 @@ function applyLang(lang) {
   try { localStorage.setItem('ip1_lang', lang); } catch (e) {}
   // Update document title
   document.title = lang === 'vi'
-    ? 'Trường liên cấp song ngữ K-12 — Đề án đầu tư'
-    : 'K-12 Bilingual School — Investment Case';
+    ? 'Dự án — Trường liên cấp Thành Thái Q10'
+    : 'Project — Thành Thái Q10 K-12 Bilingual School';
   // Re-render charts and outputs to reflect translated labels and recomputed deltas
   rebuildCharts();
   setupScenarios();
